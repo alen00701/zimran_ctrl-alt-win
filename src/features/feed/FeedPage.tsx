@@ -44,7 +44,7 @@ function QuizReel({ quiz, index, total }: { quiz: FeedQuiz; index: number; total
     </div>
   </article>;
 }
-function Reel({ post, active, open, index, total }: { post: FeedPost; active: boolean; open: (type: 'details' | 'share' | 'quiz', post: FeedPost) => void; index: number; total: number }) {
+function Reel({ post, active, near, open, index, total }: { post: FeedPost; active: boolean; near: boolean; open: (type: 'details' | 'share' | 'quiz', post: FeedPost) => void; index: number; total: number }) {
   const media = storyMedia[post.id]!;
   const publisher = publisherForName(post.publisher);
   const video = useRef<HTMLVideoElement>(null);
@@ -102,7 +102,7 @@ function Reel({ post, active, open, index, total }: { post: FeedPost; active: bo
   };
   return <article className={styles.reel} aria-label={`${index + 1} of ${total}: ${post.title}`}>
     {media.video
-      ? <video ref={video} className={styles.video} src={media.video} loop playsInline preload="metadata" aria-label={media.alt} onClick={toggle} />
+      ? <video ref={video} className={styles.video} src={media.video} loop playsInline preload={active ? 'auto' : near ? 'metadata' : 'none'} aria-label={media.alt} onClick={toggle} />
       : <img className={styles.photo} src={media.image} alt={media.alt} style={{ objectPosition: media.position }} loading={index < 2 ? 'eager' : 'lazy'} />}
     <div className={styles.shade} />
     <div className={styles.mediaLabel}>{media.video ? '▶ Video' : '▧ Photo story'} · {post.category}</div>
@@ -184,7 +184,7 @@ export function FeedPage() {
       <header className={styles.topbar}><h1 className={styles.srOnly}>Your soccer feed</h1><div className={styles.tabs}><Button variant="ghost" className={mode === 'all' ? styles.selected : ''} aria-pressed={mode === 'all'} onClick={() => setMode('all')}>For you</Button><Button variant="ghost" className={mode === 'videos' ? styles.selected : ''} aria-pressed={mode === 'videos'} onClick={() => setMode('videos')}>Videos</Button></div><StatusBar compact /><Link className={styles.tune} to={routes.onboarding({ returnTo: routes.feed(), edit: true })} aria-label="Personalize your feed">Tune ↗</Link></header>
       <div className={styles.viewport} ref={viewport} tabIndex={0} aria-label="Swipe up for the next story, or use arrow keys" onScroll={e => setActive(Math.round(e.currentTarget.scrollTop / e.currentTarget.clientHeight))} onKeyDown={e => { if (e.target !== e.currentTarget || !['ArrowDown', 'ArrowUp'].includes(e.key)) return; e.preventDefault(); move(e.key === 'ArrowDown' ? 1 : -1); }}>
         {stream.map((item, index) => {
-          if (item.type === 'post') return <Reel key={item.key} post={item.post} active={active === index && !panel} open={open} index={index} total={total} />;
+          if (item.type === 'post') return <Reel key={item.key} post={item.post} active={active === index && !panel} near={active === index || active + 1 === index} open={open} index={index} total={total} />;
           if (item.type === 'quiz') return <QuizReel key={item.key} quiz={item.quiz} index={index} total={total} />;
           if (item.type === 'event') return <article key={item.key} className={`${styles.reel} ${styles.promotion}`} aria-label="Promoted watch party"><img className={styles.photo} src={storyMedia[stories.find(p => p.preview)!.id]!.image} alt="MLS Cup Playoffs trophy" loading="lazy" /><div className={styles.shade} /><div className={styles.promoContent}><Badge variant="sponsored">Promoted · Demo event</Badge><h2>Better<br />together.</h2><p>Orlando City × FC Cincinnati</p><p>Nov 19 · Doors 7 PM ET<br />The Far Post Taproom · Orlando<br />Free admission</p><ButtonLink to={routes.event(DEMO_EVENT.id)}>Find your matchday people →</ButtonLink><small>Fictional venue. No league affiliation. Doors time is not kickoff.</small></div></article>;
           return <article key={item.key} className={`${styles.reel} ${styles.merch}`} aria-label="Sponsored merchandise"><div className={styles.scarf} aria-hidden="true"><span>ONE MORE</span><span>MATCH</span><span>TOUCHLINE GOODS</span></div><div className={styles.promoContent}><Badge variant="sponsored">Sponsored · Fictional brand</Badge><h2>Your weekend.<br />Your colors.</h2><p>The One More Match scarf · $24 demo price</p><details><summary>See the drop ↗</summary><p>Original knit scarf concept. Demo merchandise only — no checkout or stock is available.</p></details></div></article>;
