@@ -136,18 +136,20 @@ function LocationLine({ event, viewer }: { event: CommunityEvent; viewer: Return
       ? `${distanceLabel(milesBetween(viewer.coords, event.venue.coords))} · ${place}`
       : viewer.status === 'locating'
         ? `Finding you… · ${place}`
-        : `${place}, ${event.venue.city}`;
+        : viewer.status === 'unavailable'
+          ? `${place} · couldn’t get your location`
+          : place;
   return (
-    <p className={styles.locationRow}>
-      <span>
-        <span aria-hidden="true">📍 </span>
-        {text}
-        {viewer.status === 'unavailable' && <span className={styles.subline}>Couldn’t get your location.</span>}
-      </span>
+    <p className={styles.cardLine}>
+      <span aria-hidden="true">📍 </span>
+      {text}
       {viewer.status !== 'ready' && viewer.status !== 'locating' && (
-        <button type="button" className={styles.linkButton} onClick={viewer.request}>
-          {viewer.status === 'unavailable' ? 'Try again' : 'Use my location'}
-        </button>
+        <>
+          {' · '}
+          <button type="button" className={styles.inlineButton} onClick={viewer.request}>
+            {viewer.status === 'unavailable' ? 'Try again' : 'Use my location'}
+          </button>
+        </>
       )}
     </p>
   );
@@ -159,35 +161,40 @@ function EventCard({ event, going, viewer }: { event: CommunityEvent; going: boo
   const friends = friendsGoingLabel(event.id);
   const to = routes.event(event.id);
   return (
-    <article className={styles.featured}>
+    <article className={styles.featured} data-kind={event.kind}>
       <Link to={to} className={styles.featuredMedia} tabIndex={-1} aria-hidden="true">
         <VenuePhoto photo={event.photo} />
         <span className={styles.mediaNote}>Sample photo</span>
       </Link>
       <div className={styles.featuredBody}>
-        <h2 id={`section-${event.kind}`} className={styles.kicker}>
-          <span aria-hidden="true">{kind.icon}</span> {kind.label}
-        </h2>
-        <span className={styles.badges}>
-          <Badge variant="demo">Demo event</Badge>
-          {event.venue.sponsored && <Badge variant="sponsored">Sponsored venue</Badge>}
-        </span>
+        <div className={styles.cardTop}>
+          <h2 id={`section-${event.kind}`} className={styles.kicker}>
+            <span aria-hidden="true">{kind.icon}</span> {kind.label}
+          </h2>
+          <span className={styles.badges}>
+            <Badge variant="demo">Demo event</Badge>
+            {event.venue.sponsored && <Badge variant="sponsored">Sponsored venue</Badge>}
+          </span>
+        </div>
         <h3 className={styles.featuredTitle}>
           <Link to={to}>{event.title}</Link>
         </h3>
-        <p className={styles.featuredMeta}>
-          {countdown ? `${countdown} · ` : ''}
-          {eventShortDateLabel(event.startsAt, event.timeZone)} · {eventTimeLabel(event.startsAt, event.timeZone)} ·{' '}
-          <strong>{event.priceLabel}</strong>
-        </p>
-        <LocationLine event={event} viewer={viewer} />
-        {friends && (
-          <p className={styles.friendsGoing}>
-            <span aria-hidden="true">👥 </span>
-            {friends}
+        <div className={styles.cardLines}>
+          <p className={styles.cardLine}>
+            <span aria-hidden="true">🗓 </span>
+            {countdown ? `${countdown} · ` : ''}
+            {eventShortDateLabel(event.startsAt, event.timeZone)} · {eventTimeLabel(event.startsAt, event.timeZone)} ·{' '}
+            <strong>{event.priceLabel}</strong>
           </p>
-        )}
-        <div className={styles.actions}>
+          <LocationLine event={event} viewer={viewer} />
+          {friends && (
+            <p className={styles.cardLine}>
+              <span aria-hidden="true">👥 </span>
+              {friends}
+            </p>
+          )}
+        </div>
+        <div className={styles.cardActions}>
           {going ? (
             <>
               <Badge variant="success">You’re going</Badge>
@@ -195,8 +202,10 @@ function EventCard({ event, going, viewer }: { event: CommunityEvent; going: boo
             </>
           ) : (
             <>
-              <Button onClick={() => communityActions.rsvp(event.id)}>I’m going</Button>
-              <ButtonLink to={to} variant="ghost">Details</ButtonLink>
+              <Button variant={event.kind === 'play-day' ? 'inverse' : 'primary'} onClick={() => communityActions.rsvp(event.id)}>
+                I’m going
+              </Button>
+              <Link to={to} className={styles.detailsLink}>Details</Link>
             </>
           )}
         </div>
