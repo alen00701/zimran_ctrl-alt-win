@@ -7,7 +7,7 @@
  */
 import { DEMO_EVENT, DEMO_GROUP, DEMO_PLAY_DAY, SEED_POSTS } from '@/shared/fixtures/ids';
 import matchupUrl from './assets/watch-party-matchup.png';
-import fieldUrl from './assets/play-day-stadium.jpg';
+import fieldUrl from './assets/play-day-5v5.png';
 
 export interface CommunityGroup {
   id: string;
@@ -55,7 +55,7 @@ interface EventBase {
   };
   /** Picture for the event card. The matchup art shows the two real clubs' crests; see MEDIA note in the README. */
   /** `fit: 'contain'` shows a square picture whole; `backdrop` fills the side bars. */
-  photo: { src: string; width: number; height: number; alt: string; fit?: 'contain'; backdrop?: string };
+  photo: { src: string; width: number; height: number; alt: string; fit?: 'contain'; backdrop?: string; position?: string };
   priceLabel: string;
   organizer: { name: string; groupId: string };
   agenda: Array<{ when: string; what: string }>;
@@ -158,9 +158,10 @@ export const PLAY_DAY: PlayDayEvent = {
   },
   photo: {
     src: fieldUrl,
-    width: 738,
-    height: 414,
-    alt: 'A stadium pitch with striped grass, a goal and a stand of red seats behind it',
+    width: 600,
+    height: 900,
+    position: 'center 11%',
+    alt: 'Illustration: “5 vs 5 Football” with kids in purple kits playing on a small pitch, a goalkeeper in the net and a ball in the middle',
   },
   priceLabel: 'Free',
   organizer: { name: DEMO_GROUP.name, groupId: DEMO_GROUP.id },
