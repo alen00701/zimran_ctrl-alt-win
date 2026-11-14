@@ -167,7 +167,7 @@ function WeekList({ state, viewer }: { state: GuestState; viewer: ReturnType<typ
       <header className={styles.weekHead}>
         <div>
           <h2 id="week-title" className={styles.weekTitle}>This week</h2>
-          <p className={styles.muted}>{events.length} events near {DEMO_LOCATION.label}. Check the ones you’re going to.</p>
+          <p className={styles.muted}>{events.length} events near {DEMO_LOCATION.label}. Flip the switch on the ones you’re going to.</p>
         </div>
         <BrandAvatar size={72} state={checked ? 'celebrate' : 'speaking'} decorative className={styles.weekAvatar} />
       </header>
@@ -175,7 +175,7 @@ function WeekList({ state, viewer }: { state: GuestState; viewer: ReturnType<typ
         {events.map((e) => <EventRow key={e.id} event={e} going={isGoing(state, e.id)} viewer={viewer} />)}
       </ul>
       <p className={styles.weekNote} role="status">
-        {checked === 0 ? 'Nothing checked yet. Checked events appear in your Account.' : `${checked} of ${events.length} checked. `}
+        {checked === 0 ? 'Nothing switched on yet. Events you’re going to appear in your Account.' : `You’re going to ${checked} of ${events.length}. `}
         {checked > 0 && <Link to={routes.account()}>See them in Account →</Link>}
       </p>
     </section>
@@ -210,15 +210,17 @@ function EventRow({ event, going, viewer }: { event: CommunityEvent; going: bool
         <LocationLine event={event} viewer={viewer} />
         {friends && <p className={styles.cardLine}><span aria-hidden="true">👥 </span>{friends}</p>}
         <div className={styles.rowFoot}>
-          <label className={styles.goingBox} htmlFor={boxId}>
+          <label className={styles.switchRow} htmlFor={boxId}>
             <input
               id={boxId}
               type="checkbox"
+              role="switch"
+              className={styles.switchInput}
               checked={going}
               onChange={(e) => (e.target.checked ? communityActions.rsvp(event.id) : communityActions.cancelRsvp(event.id))}
             />
-            <span className={styles.goingMark} aria-hidden="true">✓</span>
-            <span className={styles.goingText}>{going ? 'I’m going' : 'Going?'}</span>
+            <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
+            <span className={styles.switchText}>{going ? 'I’m going' : 'Not going'}</span>
           </label>
           <Link to={to} className={styles.detailsLink}>Details</Link>
         </div>
