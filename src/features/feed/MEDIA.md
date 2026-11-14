@@ -1,6 +1,6 @@
 # Feed media
 
-The November 14, 2026 feed uses full-height, scroll-snapped media posts. Videos are original publisher YouTube embeds that are mounted only after the reader taps **Play original video**. This avoids browser autoplay and privacy restrictions. A direct **Open on YouTube** link remains available for region, browser or embedding restrictions. The app does not download or rehost video files.
+The November 14, 2026 feed uses full-height, scroll-snapped media posts. Videos are the team's own files in `assets/videos/` (H.264 MP4, bundled by Vite and played with a native `<video>` element). They autoplay muted while their card is on screen, rewind when it leaves, and can be paused or unmuted from the action rail. No video is loaded from the internet.
 
 ## Image credits and sources
 
@@ -11,18 +11,22 @@ The November 14, 2026 feed uses full-height, scroll-snapped media posts. Videos 
 - `assets/maradona.jpg`: FIFA video thumbnail, [Maradona’s Famous 8 Minutes](https://www.youtube.com/watch?v=FRAbNlPS2MI). FIFA authorship checked through YouTube oEmbed.
 - `assets/preview.png`: MLS, [2026 playoff schedule](https://www.mlssoccer.com/news/audi-2026-mls-cup-playoffs-field-set-and-wild-card-match-schedule-announced). The source confirms Orlando–Cincinnati on November 19 at 7:30 PM ET.
 
-Additional video cards use remote YouTube thumbnails supplied by their respective official channels; clips are embedded only from the provider:
-
-- UEFA: [Liverpool 4–0 Barcelona highlights](https://www.youtube.com/watch?v=27GHT7nAF8A).
-- FIFA: [Brazil 1–7 Germany](https://www.youtube.com/watch?v=aE4BdIP6bvc), [Argentina–France 2022 final](https://www.youtube.com/watch?v=IipmpVcISXE), and [Maradona’s Famous 8 Minutes](https://www.youtube.com/watch?v=FRAbNlPS2MI).
-
 Images are publisher preview artwork with credits shown in the interface. These credits do not confer a redistribution license; clear image rights before public commercial release.
 
-## Video sources
+## Videos (team-supplied)
 
-- ESPN FC: [Messi’s debut free kick](https://www.youtube.com/watch?v=pORjd5ZkTrs).
-- UEFA: [Liverpool 4–0 Barcelona](https://www.youtube.com/watch?v=27GHT7nAF8A).
-- FIFA: [Brazil 1–7 Germany](https://www.youtube.com/watch?v=aE4BdIP6bvc), [Argentina–France 2022](https://www.youtube.com/watch?v=IipmpVcISXE), and [Maradona against England](https://www.youtube.com/watch?v=FRAbNlPS2MI).
+| File | Post |
+| --- | --- |
+| `yamal.mp4` | Lamine Yamal clip (always first in the feed) |
+| `goalyamal.mp4` | A Yamal goal |
+| `barsapsglastmatch.mp4` | Barça vs PSG, the last match |
+| `neymar.mp4` | Neymar |
+| `coutihno.mp4` | Coutinho |
+| `doue.mp4` | Désiré Doué |
+| `olise.mp4` | Michael Olise |
+| `taarabt.mp4` | Adel Taarabt |
+
+Descriptions are written from the file names only; the event date is not known, so these posts show the edition date. Confirm rights to the footage before any public commercial release.
 
 ## Behavior
 

@@ -2,10 +2,13 @@ import { SEED_POSTS } from '@/shared/fixtures/ids';
 import type { FeedState, InterestId, SubjectTag } from '@/shared/contracts/types';
 import { isVerifiedPublisherPost } from './publishers';
 
-export interface Story {
+/** Anything that can appear as a card in the stream. `local` posts use team-supplied video files. */
+export interface FeedPost {
   id: string; sourceUrl: string; title: string; summary: string; date: string;
   publisher: string; category: string; tags: SubjectTag[]; stat: string; caption: string;
-  paragraphs: string[]; take: string; lesson?: string; clip?: boolean; preview?: boolean;
+  paragraphs: string[]; take: string; lesson?: string; clip?: boolean; preview?: boolean; local?: boolean;
+}
+export interface Story extends FeedPost {
   question: string; options: [string, string, string]; correct: number; explanation: string;
 }
 const entries: Omit<Story, 'id' | 'sourceUrl'>[] = [
@@ -66,35 +69,63 @@ const entries: Omit<Story, 'id' | 'sourceUrl'>[] = [
 ];
 export const stories: Story[] = SEED_POSTS.map((seed, i) => ({ ...seed, ...entries[i]! }));
 /** Extra short-form posts for the endless media stream. They deliberately stay feature-local. */
-export const streamStories: Story[] = [
+export const streamStories: FeedPost[] = [
   ...stories,
   {
-    id: 'liverpool-barcelona-four-goals-video', sourceUrl: 'https://www.youtube.com/watch?v=27GHT7nAF8A', title: 'Four goals. Zero second chances.',
-    category: 'Full-time rewind', date: '2019-05-07', publisher: 'UEFA', tags: ['tactics', 'club-history', 'match-moments'], stat: '4–0', caption: 'Liverpool complete the turnaround',
-    summary: 'Watch the goals from the night Liverpool flipped a three-goal deficit into a place in the final.',
-    paragraphs: ['UEFA’s official highlights collect Liverpool’s four goals against Barcelona at Anfield.', 'The score changed the aggregate from 3–0 Barcelona to 4–3 Liverpool. The quick corner was the final twist, but the comeback was built across the full match.'],
-    take: 'Comebacks rarely happen in one play. Watch how the pressure compounds before the famous corner.', question: 'What did Liverpool need to reach the final?', options: ['One goal', 'Four goals', 'A penalty shootout'], correct: 1, explanation: 'After losing the first leg 3–0, Liverpool needed four goals to progress.'
+    id: 'yamal-clip', sourceUrl: '', title: 'Lamine Yamal, in motion.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['players', 'techniques', 'match-moments'], stat: 'Yamal', caption: 'Lamine Yamal',
+    summary: 'Lamine Yamal in a clip from the team’s own video library. Watch how he receives, turns and picks his moment.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Lamine Yamal. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
   },
   {
-    id: 'brazil-germany-seven-one-video', sourceUrl: 'https://www.youtube.com/watch?v=aE4BdIP6bvc', title: 'The six minutes that changed a semifinal.',
-    category: 'World Cup rewind', date: '2014-07-08', publisher: 'FIFA', tags: ['tournaments', 'statistics', 'history'], stat: '1–7', caption: 'Brazil vs Germany · 2014 semifinal',
-    summary: 'Germany scored four times in six first-half minutes against Brazil. The official highlights make the tempo of the collapse impossible to miss.',
-    paragraphs: ['Germany beat Brazil 7–1 in the 2014 FIFA World Cup semifinal in Belo Horizonte.', 'The score was 5–0 after 29 minutes. FIFA’s extended highlights show how quickly the match moved from tension to disbelief.'],
-    take: 'When one team loses its distances after conceding, the next attack can arrive before anyone resets.', question: 'How many goals did Germany score?', options: ['Five', 'Seven', 'Nine'], correct: 1, explanation: 'Germany won the semifinal 7–1.'
+    id: 'goalyamal-clip', sourceUrl: '', title: 'A Yamal goal, start to finish.', category: 'Goal clip', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['players', 'techniques', 'match-moments'], stat: 'Goal', caption: 'Lamine Yamal goal',
+    summary: 'A goal by Lamine Yamal. Follow the build-up, the finish and the reaction in one short clip.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Lamine Yamal goal. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
   },
   {
-    id: 'argentina-france-2022-final-video', sourceUrl: 'https://www.youtube.com/watch?v=IipmpVcISXE', title: 'A final that refused to end.',
-    category: 'World Cup rewind', date: '2022-12-18', publisher: 'FIFA', tags: ['tournaments', 'players', 'match-moments'], stat: '3–3', caption: 'Argentina vs France · 2022 final',
-    summary: 'Messi, Mbappé and a finish that went all the way to penalties. This is the official FIFA highlight reel.',
-    paragraphs: ['Argentina and France drew 3–3 after extra time in the 2022 FIFA World Cup final.', 'Argentina won the penalty shootout 4–2. FIFA’s official highlights track the shifts in momentum from Argentina’s early lead to France’s comeback.'],
-    take: 'The scoreboard can change faster than a team’s mentality. Pay attention to who still wants the ball after a momentum swing.', question: 'How was the 2022 final decided?', options: ['Golden goal', 'Penalty shootout', 'Replay'], correct: 1, explanation: 'Argentina won the shootout 4–2 after a 3–3 draw.'
+    id: 'barsapsglastmatch-clip', sourceUrl: '', title: 'Barça vs PSG: the last match.', category: 'Match recap', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['tactics', 'club-history', 'match-moments'], stat: 'Barça–PSG', caption: 'Barcelona vs Paris Saint-Germain',
+    summary: 'Moments from the most recent Barcelona–Paris Saint-Germain meeting, cut into one watchable clip.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Barcelona vs Paris Saint-Germain. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
   },
   {
-    id: 'maradona-eight-minutes-video', sourceUrl: 'https://www.youtube.com/watch?v=FRAbNlPS2MI', title: 'Eight minutes, two football myths.',
-    category: 'FIFA archive', date: '1986-06-22', publisher: 'FIFA', tags: ['history', 'players', 'club-history'], stat: '2–1', caption: 'Maradona against England',
-    summary: 'The official FIFA film puts the disputed goal and the solo run together, exactly as the match unfolded.',
-    paragraphs: ['Argentina beat England 2–1 in their 1986 World Cup quarterfinal.', 'FIFA’s film revisits the two Maradona goals: the first was controversial for the handball, while the second was a solo dribble through England’s defense.'],
-    take: 'A highlight can be beautiful and complicated at the same time. Let the clip give you the sequence; keep the context too.', question: 'Which came second in this match?', options: ['The solo dribble goal', 'The handball goal', 'A penalty'], correct: 0, explanation: 'The solo run followed the controversial handball goal.'
+    id: 'neymar-clip', sourceUrl: '', title: 'Neymar and the art of the dribble.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['players', 'techniques', 'match-moments'], stat: 'Neymar', caption: 'Neymar',
+    summary: 'A Neymar clip built around flair: close control, quick feet and the one-v-one challenge.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Neymar. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+  },
+  {
+    id: 'coutihno-clip', sourceUrl: '', title: 'Coutinho, vision and finish.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['players', 'techniques', 'match-moments'], stat: 'Coutinho', caption: 'Philippe Coutinho',
+    summary: 'A Philippe Coutinho clip. Look for the weight of the pass and the strike from range.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Philippe Coutinho. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+  },
+  {
+    id: 'doue-clip', sourceUrl: '', title: 'Désiré Doué: pace with the ball.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['players', 'techniques', 'match-moments'], stat: 'Doué', caption: 'Désiré Doué',
+    summary: 'A Désiré Doué clip. Watch how he attacks space and keeps the ball moving at speed.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Désiré Doué. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+  },
+  {
+    id: 'olise-clip', sourceUrl: '', title: 'Michael Olise, the left-footed creator.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['players', 'techniques', 'tactics'], stat: 'Olise', caption: 'Michael Olise',
+    summary: 'A Michael Olise clip. A closer look at how he creates chances from wide areas.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Michael Olise. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+  },
+  {
+    id: 'taarabt-clip', sourceUrl: '', title: 'Taarabt: the showman’s touch.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
+    tags: ['players', 'techniques', 'match-moments'], stat: 'Taarabt', caption: 'Adel Taarabt',
+    summary: 'An Adel Taarabt clip, a reminder that soccer can be as much about creativity as results.',
+    paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Adel Taarabt. Watch it once for the result, then again for the detail.'],
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
   },
 ];
 
@@ -109,16 +140,16 @@ export const streamQuizzes: FeedQuiz[] = [
 export const editionQuizId = 'feed-quiz:2026-11-14';
 export const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 export const rankStories = (interests: InterestId[]) => [...stories].sort((a, b) => b.tags.filter(tag => interests.some(i => i === tag)).length - a.tags.filter(tag => interests.some(i => i === tag)).length);
+/** The post that always opens the stream, whatever the reader's interests. */
+export const PINNED_FIRST_POST_ID = 'yamal-clip';
+const interestScore = (post: FeedPost, interests: InterestId[]) => post.tags.filter(tag => interests.some(interest => interest === tag)).length;
 export const rankStreamStories = (interests: InterestId[]) =>
-  streamStories.filter(isVerifiedPublisherPost).sort((a, b) => {
-    const interestDifference =
-      b.tags.filter(tag => interests.some(interest => interest === tag)).length -
-      a.tags.filter(tag => interests.some(interest => interest === tag)).length;
-
-    // Editors append new drops to this catalogue. Within the same personal
-    // relevance score, the newest addition should lead the reel.
-    return interestDifference || streamStories.indexOf(b) - streamStories.indexOf(a);
-  });
+  streamStories.filter(post => post.local || isVerifiedPublisherPost(post)).sort((a, b) =>
+    Number(b.id === PINNED_FIRST_POST_ID) - Number(a.id === PINNED_FIRST_POST_ID) ||
+    interestScore(b, interests) - interestScore(a, interests) ||
+    // Team videos lead the photo stories; each group keeps catalogue order.
+    Number(!!b.local) - Number(!!a.local) ||
+    streamStories.indexOf(a) - streamStories.indexOf(b));
 export function quizStory(feed: FeedState) {
   const read = Object.values(feed.views).filter(view => stories.some(post => post.id === view.postId));
   if (read.length < 2) return undefined;

@@ -5,14 +5,14 @@ import { DEMO_EVENT, exerciseId } from '@/shared/fixtures/ids';
 import { feedActions, scoreboardActions, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { Badge, Button, ButtonLink, usePageTitle } from '@/shared/ui';
-import { dateLabel, editionQuizId, quizStory, rankStreamStories, streamQuizzes, type FeedQuiz, type Story } from './content';
+import { dateLabel, editionQuizId, quizStory, rankStreamStories, streamQuizzes, type FeedPost, type FeedQuiz } from './content';
 import { MatchPick, ShareStory, StoryQuiz } from './FeedWidgets';
 import { storyMedia } from './media';
 import { publisherForName } from './publishers';
 import styles from './Reels.module.css';
 
-function Icon({ name }: { name: 'share' | 'info' | 'play' | 'pause' | 'up' | 'down' | 'quiz' }) {
-  const paths = { share: 'M12 16V3m0 0L7 8m5-5 5 5M5 13v7h14v-7', info: 'M12 11v6m0-10v.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0', play: 'm8 5 11 7-11 7Z', pause: 'M8 5v14M16 5v14', up: 'm6 15 6-6 6 6', down: 'm6 9 6 6 6-6', quiz: 'M9 8a3 3 0 1 1 5 2c-2 1-2 2-2 3m0 4v.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0' };
+function Icon({ name }: { name: 'share' | 'info' | 'play' | 'pause' | 'up' | 'down' | 'quiz' | 'sound' | 'muted' }) {
+  const paths = { sound: 'M4 9v6h4l5 4V5L8 9H4Zm13 0a4 4 0 0 1 0 6', muted: 'M4 9v6h4l5 4V5L8 9H4Zm13 1 5 4m0-4-5 4', share: 'M12 16V3m0 0L7 8m5-5 5 5M5 13v7h14v-7', info: 'M12 11v6m0-10v.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0', play: 'm8 5 11 7-11 7Z', pause: 'M8 5v14M16 5v14', up: 'm6 15 6-6 6 6', down: 'm6 9 6 6 6-6', quiz: 'M9 8a3 3 0 1 1 5 2c-2 1-2 2-2 3m0 4v.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0' };
   return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>;
 }
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
@@ -42,13 +42,12 @@ function QuizReel({ quiz, index, total }: { quiz: FeedQuiz; index: number; total
     </div>
   </article>;
 }
-function Reel({ post, active, open, index, total }: { post: Story; active: boolean; open: (type: 'details' | 'share' | 'quiz', post: Story) => void; index: number; total: number }) {
+function Reel({ post, active, open, index, total }: { post: FeedPost; active: boolean; open: (type: 'details' | 'share' | 'quiz', post: FeedPost) => void; index: number; total: number }) {
   const media = storyMedia[post.id]!;
   const publisher = publisherForName(post.publisher);
-  /** Third-party players must start only after an explicit tap: browsers otherwise block autoplay. */
-  const [playing, setPlaying] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const frame = useRef<HTMLIFrameElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
+  const [paused, setPaused] = useState(false);
   const state = useGuestState();
   const hasQuiz = !!quizStory(state.feed) && state.feed.quizzes[editionQuizId]?.status !== 'dismissed';
   useEffect(() => {
@@ -56,29 +55,29 @@ function Reel({ post, active, open, index, total }: { post: Story; active: boole
     const timer = setTimeout(() => feedActions.markPostViewed(post.id, post.tags), 5000);
     return () => clearTimeout(timer);
   }, [active, post]);
+  // Team videos play (muted, as browsers require) while their card is on screen and rewind when it leaves.
   useEffect(() => {
-    if (!active) setPlaying(false);
+    const el = video.current;
+    if (!el) return;
+    if (active) { setPaused(false); el.play().catch(() => setPaused(true)); }
+    else { el.pause(); el.currentTime = 0; }
   }, [active]);
-  useEffect(() => {
-    function onMessage(event: MessageEvent) {
-      if (event.source !== frame.current?.contentWindow || !['https://www.youtube-nocookie.com', 'https://www.youtube.com'].includes(event.origin)) return;
-      try { const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; if (data.event === 'onError') setFailed(true); } catch { /* Other provider messages are irrelevant. */ }
-    }
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, []);
-  // The tap itself is authoritative: it must still work while the browser is
-  // settling a scroll-snap position and its scroll event has not fired yet.
-  const showVideo = media.videoId && playing && !failed;
+  const toggle = () => {
+    const el = video.current;
+    if (!el) return;
+    if (el.paused) { el.play().then(() => setPaused(false)).catch(() => setPaused(true)); } else { el.pause(); setPaused(true); }
+  };
   return <article className={styles.reel} aria-label={`${index + 1} of ${total}: ${post.title}`}>
-    <img className={styles.photo} src={media.image} alt={media.alt} style={{ objectPosition: media.position }} loading={index < 2 ? 'eager' : 'lazy'} />
+    {media.video
+      ? <video ref={video} className={styles.video} src={media.video} muted={muted} loop playsInline preload="metadata" aria-label={media.alt} onClick={toggle} />
+      : <img className={styles.photo} src={media.image} alt={media.alt} style={{ objectPosition: media.position }} loading={index < 2 ? 'eager' : 'lazy'} />}
     <div className={styles.shade} />
-    <div className={styles.mediaLabel}>{media.videoId ? '▶ Match clip' : '▧ Photo story'} · {post.category}</div>
-    {showVideo && <div className={styles.player}><iframe ref={frame} title={`${post.title} — ${media.credit}`} src={`https://www.youtube.com/embed/${media.videoId}?autoplay=1&mute=0&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" onLoad={() => frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: post.id }), 'https://www.youtube.com')} /><a href={`https://www.youtube.com/watch?v=${media.videoId}`} target="_blank" rel="noreferrer">Open on YouTube ↗</a></div>}
-    {media.videoId && !showVideo && <div className={styles.videoPrompt}><Button variant="inverse" onClick={() => { setFailed(false); setPlaying(true); }} aria-label={`Play original video: ${post.title}`}><Icon name="play" /> Play original video</Button><a href={`https://www.youtube.com/watch?v=${media.videoId}`} target="_blank" rel="noreferrer">Open on YouTube ↗</a></div>}
+    <div className={styles.mediaLabel}>{media.video ? '▶ Video' : '▧ Photo story'} · {post.category}</div>
+    {media.video && paused && <div className={styles.videoPrompt}><Button variant="inverse" onClick={toggle} aria-label={`Play video: ${post.title}`}><Icon name="play" /> Play video</Button></div>}
     <div className={styles.actions}>
       <div className={styles.avatar}><BrandAvatar size="sm" decorative /></div>
-      {media.videoId && <Button variant="ghost" className={styles.action} onClick={() => setPlaying(!playing)} aria-label={playing ? 'Stop video' : 'Play video'}><Icon name={playing ? 'pause' : 'play'} /><span>{playing ? 'Stop' : 'Play'}</span></Button>}
+      {media.video && <Button variant="ghost" className={styles.action} onClick={toggle} aria-label={paused ? 'Play video' : 'Pause video'}><Icon name={paused ? 'play' : 'pause'} /><span>{paused ? 'Play' : 'Pause'}</span></Button>}
+      {media.video && <Button variant="ghost" className={styles.action} onClick={() => setMuted(!muted)} aria-pressed={!muted} aria-label={muted ? 'Turn sound on' : 'Mute video'}><Icon name={muted ? 'muted' : 'sound'} /><span>{muted ? 'Sound' : 'Mute'}</span></Button>}
       <Button variant="ghost" className={styles.action} onClick={() => open('details', post)} aria-label={`Details for ${post.title}`}><Icon name="info" /><span>Story</span></Button>
       <Button variant="ghost" className={styles.action} onClick={() => open('share', post)} aria-label={`Share ${post.title}`}><Icon name="share" /><span>Share</span></Button>
       {hasQuiz && <Button variant="ghost" className={styles.action} onClick={() => open('quiz', post)} aria-label="Open story quiz"><Icon name="quiz" /><span>Quiz</span></Button>}
@@ -87,24 +86,24 @@ function Reel({ post, active, open, index, total }: { post: Story; active: boole
       <span className={styles.publisher}>{publisher?.handle ?? '@touchlinedesk'} <span>{publisher ? '· Verified publisher' : '· Fictional publisher'}</span></span>
       <h2>{post.title}</h2><p>{post.summary}</p>
       <div className={styles.captionLinks}><Button variant="ghost" onClick={() => open('details', post)}>{post.preview ? 'Make your pick →' : 'The story behind it →'}</Button>{post.clip && <a href={post.sourceUrl} target="_blank" rel="noreferrer">Watch the original ↗</a>}</div>
-      <span className={styles.credit}>{dateLabel(post.date)} · {media.credit}</span>
+      <span className={styles.credit}>{post.local ? media.credit : `${dateLabel(post.date)} · ${media.credit}`}</span>
     </div>
   </article>;
 }
 
 type StreamItem =
-  | { type: 'post'; key: string; post: Story }
+  | { type: 'post'; key: string; post: FeedPost }
   | { type: 'quiz'; key: string; quiz: FeedQuiz }
   | { type: 'event'; key: string }
   | { type: 'merch'; key: string };
 
-function buildStream(posts: Story[], batchCount: number, quizzes: Record<string, unknown>): StreamItem[] {
+function buildStream(posts: FeedPost[], batchCount: number, quizzes: Record<string, unknown>): StreamItem[] {
   const items: StreamItem[] = [];
   for (let batch = 0; batch < batchCount; batch += 1) {
     let videoCount = 0;
     for (const post of posts) {
       items.push({ type: 'post', key: `${batch}-${post.id}`, post });
-      if (storyMedia[post.id]?.videoId) {
+      if (storyMedia[post.id]?.video) {
         videoCount += 1;
         const quiz = streamQuizzes[(videoCount / 3) - 1];
         if (batch === 0 && videoCount % 3 === 0 && quiz && !quizzes[quiz.id]) items.push({ type: 'quiz', key: quiz.id, quiz });
@@ -124,10 +123,10 @@ export function FeedPage() {
   const interestsKey = preferences.interests.join('|');
   const ranked = useMemo(() => rankStreamStories(preferences.interests), [preferences.interests]);
   const [mode, setMode] = useState<'all' | 'videos'>('all');
-  const posts = useMemo(() => mode === 'videos' ? ranked.filter(p => storyMedia[p.id]?.videoId) : ranked, [ranked, mode]);
+  const posts = useMemo(() => mode === 'videos' ? ranked.filter(p => storyMedia[p.id]?.video) : ranked, [ranked, mode]);
   const [batchCount, setBatchCount] = useState(2);
   const [active, setActive] = useState(0);
-  const [panel, setPanel] = useState<{ type: 'details' | 'share' | 'quiz'; post: Story } | null>(null);
+  const [panel, setPanel] = useState<{ type: 'details' | 'share' | 'quiz'; post: FeedPost } | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const stream = useMemo(() => buildStream(posts, batchCount, state.feed.quizzes), [posts, batchCount, state.feed.quizzes]);
   const total = stream.length;
@@ -138,7 +137,7 @@ export function FeedPage() {
     const target = Math.max(0, Math.min(total - 1, active + direction));
     viewport.current?.scrollTo({ top: target * viewport.current.clientHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   };
-  const open = (type: 'details' | 'share' | 'quiz', post: Story) => { if (type === 'details') feedActions.markPostViewed(post.id, post.tags); setPanel({ type, post }); };
+  const open = (type: 'details' | 'share' | 'quiz', post: FeedPost) => { if (type === 'details') feedActions.markPostViewed(post.id, post.tags); setPanel({ type, post }); };
   return <section className={styles.experience} aria-label="Soccer media feed">
     <div className={styles.stage}>
       <header className={styles.topbar}><h1 className={styles.srOnly}>Your soccer feed</h1><div className={styles.tabs}><Button variant="ghost" className={mode === 'all' ? styles.selected : ''} aria-pressed={mode === 'all'} onClick={() => setMode('all')}>For you</Button><Button variant="ghost" className={mode === 'videos' ? styles.selected : ''} aria-pressed={mode === 'videos'} onClick={() => setMode('videos')}>Videos</Button></div><Link to={routes.onboarding({ returnTo: routes.feed(), edit: true })} aria-label="Personalize your feed">Tune ↗</Link></header>
@@ -154,7 +153,7 @@ export function FeedPage() {
     </div>
     <aside className={styles.controls} aria-label="Feed navigation"><span>{String(active + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span><Button variant="secondary" onClick={() => move(-1)} disabled={active === 0} aria-label="Previous story"><Icon name="up" /></Button><Button variant="secondary" onClick={() => move(1)} disabled={active === total - 1} aria-label="Next story"><Icon name="down" /></Button><p>Scroll to<br />discover</p><small>Nov 14<br />2026 edition</small></aside>
     {panel && <Sheet title={panel.type === 'details' ? 'Behind the moment' : panel.type === 'quiz' ? 'Your quick quiz' : 'Share this moment'} onClose={() => setPanel(null)}>
-      {panel.type === 'details' ? <><Badge>{panel.post.category}</Badge><h3>{panel.post.title}</h3><p>{dateLabel(panel.post.date)} · Source: {panel.post.publisher}</p>{panel.post.paragraphs.map(p => <p key={p}>{p}</p>)}<p><strong>Our take: </strong>{panel.post.take}</p><a href={panel.post.sourceUrl} target="_blank" rel="noreferrer">Original source ↗</a>{panel.post.preview && <MatchPick />}<ButtonLink to={routes.feedPost(panel.post.id)} variant="secondary">Open full story</ButtonLink><StoryQuiz /></> : panel.type === 'quiz' ? <StoryQuiz /> : <><p>{panel.post.title}</p><ShareStory postId={panel.post.id} /></>}
+      {panel.type === 'details' ? <><Badge>{panel.post.category}</Badge><h3>{panel.post.title}</h3><p>{panel.post.local ? 'Team video · The Touchline Desk' : `${dateLabel(panel.post.date)} · Source: ${panel.post.publisher}`}</p>{panel.post.paragraphs.map(p => <p key={p}>{p}</p>)}<p><strong>Our take: </strong>{panel.post.take}</p>{panel.post.sourceUrl && <a href={panel.post.sourceUrl} target="_blank" rel="noreferrer">Original source ↗</a>}{panel.post.preview && <MatchPick />}<ButtonLink to={routes.feedPost(panel.post.id)} variant="secondary">Open full story</ButtonLink><StoryQuiz /></> : panel.type === 'quiz' ? <StoryQuiz /> : <><p>{panel.post.title}</p><ShareStory postId={panel.post.id} /></>}
     </Sheet>}
   </section>;
 }
