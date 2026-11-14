@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
-import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router';
+import { Link, NavLink, Navigate, Outlet, ScrollRestoration, matchPath, useLocation } from 'react-router';
 import { BrandLogo } from '@/shared/brand';
-import { TABS, routes } from '@/shared/routes';
+import { TABS, paths, routes } from '@/shared/routes';
+import { isOnboarded, useGuestState } from '@/shared/state';
 import { OutOfHeartsDialog, StatusBar } from '@/shared/ui';
 import { TabIcon } from './TabIcon';
 import styles from './AppShell.module.css';
@@ -10,8 +11,17 @@ import styles from './AppShell.module.css';
  * Responsive shell: bottom tab bar on phones/tablets, left rail on desktop (≥1024px).
  * Exactly four tabs: Feed · Learn · Community · Account.
  */
+/** Shared deep links open immediately for first-time visitors; personalization is offered afterward. */
+const DEEP_LINKS = [paths.feedPost, paths.event];
+
 export function AppShell() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const state = useGuestState();
+  // First visit: show the customization landing (onboarding) before any tab.
+  if (!isOnboarded(state) && !DEEP_LINKS.some((p) => matchPath(p, pathname))) {
+    const here = pathname.replace(/\/+$/, '') + search;
+    return <Navigate to={routes.onboarding(here === routes.feed() ? undefined : { returnTo: here })} replace />;
+  }
   // The Feed is a full-screen stream that carries its own compact status bar.
   const immersiveFeed = pathname.replace(/\/+$/, '') === routes.feed();
   return (
