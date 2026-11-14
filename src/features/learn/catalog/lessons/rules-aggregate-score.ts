@@ -7,6 +7,7 @@ export const rulesAggregateScore: Lesson = {
   difficulty: 'beginner',
   minutes: 4,
   summary: 'Why a 4–0 win can still be a comeback story, and how two matches become one result.',
+  art: 'aggregate',
   interests: ['rules', 'tournaments'],
   tags: ['rules', 'tournaments', 'statistics'],
   prerequisites: [],
@@ -28,6 +29,7 @@ export const rulesAggregateScore: Lesson = {
     solvedMessage: 'Liverpool are ahead on aggregate. That is the whole idea: both legs count together.',
   },
   quiz: {
+    art: 'aggregate',
     question: 'A team wins the first leg 2–0 and loses the second leg 1–0. Who leads on aggregate?',
     options: [
       { id: 'first', label: 'The team that won the first leg, 2–1' },

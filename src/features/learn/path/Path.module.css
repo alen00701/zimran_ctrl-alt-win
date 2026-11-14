@@ -276,3 +276,13 @@
 }
 .guide[hidden] { display: none; }
 .levelBtn svg { flex: none; }
+
+/* banner thumbnail: hidden on phones (art lives in the guide), shown from 560px */
+.bannerArt { display: none; }
+.guide > figure { max-width: 100%; box-shadow: none; }
+@media (min-width: 560px) {
+  .banner { grid-template-columns: auto 1fr auto; }
+  .bannerArt { display: block; width: 132px; align-self: center; margin-left: var(--space-4); }
+  .bannerArt > figure { box-shadow: none; border-radius: var(--radius-md); outline: var(--border-width) solid var(--banner-track); }
+  .banner[data-tone='brand'] .bannerArt > figure { outline-color: var(--color-text-on-brand-soft); }
+}

@@ -43,3 +43,6 @@ Categories with no lesson show "Coming soon" in the Modules grid.
 - Gate: newcomers (expertise `new` or not set) must pass Rules basics before other lessons and levels open on the path. Familiar/expert fans see it as an optional refresher. Deep links to course lessons (for example from Feed) always open, as journey 2 requires.
 - Rules basics progress is stored in `course.lessons['rules-basics'].answers` and never calls `completeLesson`, so it does not use up the two free course lessons. Each drill check and quiz question scores 10 points on its first attempt only, through `recordFirstAttempt`.
 - State is pure and tested in `logic/path.ts` (`buildPath`, `readRules`, `streakDays`).
+
+## Illustrations
+`art/Illustration.tsx`: 20 original vector scenes (pitch diagrams, scoreboards, cards, trophy and so on), drawn with semantic tokens only. No photos, club crests or logos. Every Rules lesson (`Drill.art`), every block-quiz question (`ChoiceQuestion.art`), every course lesson story (`Lesson.art`) and its quiz (`quiz.art`, or the tactical `diagram`), and every block banner (`PathBlock.art`) has one. Each scene has alt text in `ART_ALT`. `art/art.test.ts` fails if any item is missing a picture. To add a scene: add its ID to `ART_IDS`, its alt text and a drawing in `SCENES`.

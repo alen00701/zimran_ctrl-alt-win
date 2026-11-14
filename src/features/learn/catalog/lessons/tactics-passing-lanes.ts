@@ -7,6 +7,7 @@ export const tacticsPassingLanes: Lesson = {
   difficulty: 'beginner',
   minutes: 6,
   summary: 'Move a defender and watch the passing options open and close.',
+  art: 'lanes',
   interests: ['tactics', 'strategy', 'techniques'],
   tags: ['tactics', 'techniques'],
   prerequisites: [],

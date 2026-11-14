@@ -7,6 +7,7 @@ export const tacticsQuickCorner: Lesson = {
   difficulty: 'advanced',
   minutes: 6,
   summary: 'Break down the restart that helped Liverpool finish off Barcelona at Anfield.',
+  art: 'quick-corner',
   interests: ['tactics', 'strategy'],
   tags: ['tactics', 'match-moments', 'strategy'],
   prerequisites: ['rules-aggregate-score'],
@@ -32,6 +33,7 @@ export const tacticsQuickCorner: Lesson = {
     solvedMessage: 'That is the sequence. The kick came before the defense was ready.',
   },
   quiz: {
+    art: 'quick-corner',
     question: 'What made the quick corner work?',
     options: [
       { id: 'timing', label: 'It was played before the defenders were set' },

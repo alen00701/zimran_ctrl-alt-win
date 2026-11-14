@@ -7,6 +7,7 @@ export const historyMaradona1986: Lesson = {
   difficulty: 'intermediate',
   minutes: 5,
   summary: 'Two goals in one match: one controversial, one remembered for its brilliance.',
+  art: 'two-goals-1986',
   interests: ['players', 'tournaments', 'club-history'],
   tags: ['history', 'biographies', 'scandals', 'tournaments'],
   prerequisites: [],
@@ -35,6 +36,7 @@ export const historyMaradona1986: Lesson = {
     solvedMessage: 'Right. Same player, same match, but one goal is argued about and the other is admired.',
   },
   quiz: {
+    art: 'two-goals-1986',
     question: 'Why is the first goal controversial?',
     options: [
       { id: 'hand', label: 'Maradona used his hand and the goal was allowed' },

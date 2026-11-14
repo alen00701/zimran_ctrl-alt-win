@@ -3,6 +3,7 @@ import { Badge } from '@/shared/ui';
 import type { ViewBlock } from '../logic/path';
 import { BLOCK_SLOTS } from '../catalog/path';
 import { Icon } from './icons';
+import { Illustration } from '../art/Illustration';
 import styles from './Path.module.css';
 
 /** Colored block header card (reference: the "Module 1, Section 6" banner). */
@@ -17,6 +18,9 @@ export function BlockBanner({ view, levelNumber, required }: { view: ViewBlock; 
 
   return (
     <div className={styles.banner} data-tone={tone}>
+      <div className={styles.bannerArt} aria-hidden="true">
+        <Illustration art={block.art} size="sm" />
+      </div>
       <div className={styles.bannerMain}>
         <p className={styles.bannerEyebrow}>
           Level {levelNumber}, block {view.number}
@@ -50,6 +54,7 @@ export function BlockBanner({ view, levelNumber, required }: { view: ViewBlock; 
         <Icon name="book" size={26} />
       </button>
       <div id={guideId} className={styles.guide} hidden={!open}>
+        <Illustration art={block.art} size="sm" />
         {block.guide.map((g) => (
           <p key={g}>{g}</p>
         ))}

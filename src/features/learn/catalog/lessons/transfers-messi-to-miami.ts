@@ -7,6 +7,7 @@ export const transfersMessiToMiami: Lesson = {
   difficulty: 'intermediate',
   minutes: 5,
   summary: 'Follow Lionel Messi’s career path to Inter Miami CF and the free kick that opened it.',
+  art: 'transfer',
   interests: ['transfers', 'players'],
   tags: ['transfers', 'biographies', 'match-moments', 'news'],
   prerequisites: [],
@@ -34,6 +35,7 @@ export const transfersMessiToMiami: Lesson = {
     solvedMessage: 'Barcelona, then Paris, then Miami. That is the transfer path.',
   },
   quiz: {
+    art: 'free-kick',
     question: 'How did Messi’s Inter Miami debut get decided?',
     options: [
       { id: 'free-kick', label: 'A stoppage-time free kick' },

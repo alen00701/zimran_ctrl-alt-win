@@ -4,6 +4,7 @@
  * never as available.
  */
 import type { ModuleCategory } from '@/shared/contracts/catalog';
+import type { ArtId } from '../art/Illustration';
 import type { Difficulty } from '../types';
 import { RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ_ID } from './rulesBasics';
 
@@ -16,6 +17,8 @@ export interface PathBlock {
   title: string;
   module: ModuleCategory;
   tone: BlockTone;
+  /** Illustration for the banner thumbnail and guide. */
+  art: ArtId;
   /** Quick-view guide shown from the banner's guide button. */
   guide: string[];
   nodes: PathNodeRef[];
@@ -41,6 +44,7 @@ export const LEVELS: PathLevel[] = [
     blocks: [
       {
         id: RULES_BLOCK_ID,
+        art: 'goal-line',
         title: 'Rules basics',
         module: 'rules',
         tone: 'brand',
@@ -55,6 +59,7 @@ export const LEVELS: PathLevel[] = [
       },
       {
         id: 'beginner-scores',
+        art: 'bracket',
         title: 'Scores and tournaments',
         module: 'tournaments',
         tone: 'inverse',
@@ -66,14 +71,17 @@ export const LEVELS: PathLevel[] = [
       },
       {
         id: 'beginner-space',
+        art: 'lanes',
         title: 'Space on the field',
         module: 'tactics',
         tone: 'deep',
         guide: ['Why positions matter more than chasing the ball. Move a defender and see what changes.'],
         nodes: [{ kind: 'lesson', id: 'tactics-passing-lanes' }],
       },
-      { id: 'beginner-skills', title: 'Techniques and skills', module: 'techniques', tone: 'outline', guide: ['First touch, passing and shooting technique.'], nodes: [] },
-      { id: 'beginner-plans', title: 'Game plans', module: 'strategy', tone: 'outline', guide: ['How coaches set up a team to win.'], nodes: [] },
+      { id: 'beginner-skills',
+        art: 'skills', title: 'Techniques and skills', module: 'techniques', tone: 'outline', guide: ['First touch, passing and shooting technique.'], nodes: [] },
+      { id: 'beginner-plans',
+        art: 'board', title: 'Game plans', module: 'strategy', tone: 'outline', guide: ['How coaches set up a team to win.'], nodes: [] },
     ],
   },
   {
@@ -82,6 +90,7 @@ export const LEVELS: PathLevel[] = [
     blocks: [
       {
         id: 'intermediate-legends',
+        art: 'two-goals-1986',
         title: 'Legends and controversy',
         module: 'history',
         tone: 'brand',
@@ -90,15 +99,19 @@ export const LEVELS: PathLevel[] = [
       },
       {
         id: 'intermediate-transfers',
+        art: 'transfer',
         title: 'Transfers',
         module: 'transfers',
         tone: 'inverse',
         guide: ['How moves between clubs and leagues shape careers.'],
         nodes: [{ kind: 'lesson', id: 'transfers-messi-to-miami' }],
       },
-      { id: 'intermediate-bios', title: 'Player biographies', module: 'biographies', tone: 'outline', guide: ['The people behind the legends.'], nodes: [] },
-      { id: 'intermediate-formats', title: 'Tournament formats', module: 'tournaments', tone: 'outline', guide: ['Groups, knockouts and tiebreakers.'], nodes: [] },
-      { id: 'intermediate-skills', title: 'Skills in context', module: 'techniques', tone: 'outline', guide: ['When and why players choose a technique.'], nodes: [] },
+      { id: 'intermediate-bios',
+        art: 'jersey', title: 'Player biographies', module: 'biographies', tone: 'outline', guide: ['The people behind the legends.'], nodes: [] },
+      { id: 'intermediate-formats',
+        art: 'bracket', title: 'Tournament formats', module: 'tournaments', tone: 'outline', guide: ['Groups, knockouts and tiebreakers.'], nodes: [] },
+      { id: 'intermediate-skills',
+        art: 'skills', title: 'Skills in context', module: 'techniques', tone: 'outline', guide: ['When and why players choose a technique.'], nodes: [] },
     ],
   },
   {
@@ -107,16 +120,21 @@ export const LEVELS: PathLevel[] = [
     blocks: [
       {
         id: 'advanced-set-pieces',
+        art: 'quick-corner',
         title: 'Set pieces',
         module: 'tactics',
         tone: 'brand',
         guide: ['Restarts as weapons: timing, routines and catching a defense unset.'],
         nodes: [{ kind: 'lesson', id: 'tactics-quick-corner' }],
       },
-      { id: 'advanced-pressing', title: 'Pressing and shape', module: 'tactics', tone: 'outline', guide: ['Defending as a unit.'], nodes: [] },
-      { id: 'advanced-managers', title: 'Managers and game plans', module: 'strategy', tone: 'outline', guide: ['In-game decisions and substitutions.'], nodes: [] },
-      { id: 'advanced-club-history', title: 'Club history', module: 'history', tone: 'outline', guide: ['How great clubs were built.'], nodes: [] },
-      { id: 'advanced-market', title: 'The transfer market', module: 'transfers', tone: 'outline', guide: ['Fees, contracts and windows.'], nodes: [] },
+      { id: 'advanced-pressing',
+        art: 'lanes', title: 'Pressing and shape', module: 'tactics', tone: 'outline', guide: ['Defending as a unit.'], nodes: [] },
+      { id: 'advanced-managers',
+        art: 'board', title: 'Managers and game plans', module: 'strategy', tone: 'outline', guide: ['In-game decisions and substitutions.'], nodes: [] },
+      { id: 'advanced-club-history',
+        art: 'trophy', title: 'Club history', module: 'history', tone: 'outline', guide: ['How great clubs were built.'], nodes: [] },
+      { id: 'advanced-market',
+        art: 'transfer', title: 'The transfer market', module: 'transfers', tone: 'outline', guide: ['Fees, contracts and windows.'], nodes: [] },
     ],
   },
 ];

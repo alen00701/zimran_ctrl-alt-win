@@ -1,4 +1,5 @@
 import type { ModuleCategory } from '@/shared/contracts/catalog';
+import type { ArtId } from './art/Illustration';
 import type { InterestId, LessonId, SubjectTag } from '@/shared/contracts/types';
 
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
@@ -89,6 +90,8 @@ export interface QuizSpec {
   correctId: string;
   /** A different setup than the interaction, for tactical lessons. */
   diagram?: QuizDiagram;
+  /** Illustration for the question when there is no diagram. */
+  art?: ArtId;
 }
 
 /** What the quiz stores under answers['quiz']. */
@@ -109,6 +112,8 @@ export interface Lesson {
   minutes: number;
   /** One or two sentences for list rows. */
   summary: string;
+  /** Illustration for the story step. */
+  art: ArtId;
   interests: InterestId[];
   tags: SubjectTag[];
   /** Soft: only used to order recommendations for newcomers. */

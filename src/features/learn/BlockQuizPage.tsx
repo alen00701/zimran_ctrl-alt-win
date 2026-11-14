@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { exerciseId } from '@/shared/fixtures/ids';
 import { routes } from '@/shared/routes';
@@ -7,6 +7,7 @@ import { Button, ButtonLink, Card, CoachPrompt, OptionCard, ProgressBar, usePage
 import { QUIZ_PASS_MARK, RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ } from './catalog/rulesBasics';
 import { passes, quizScore, readRules, type QuizRun } from './logic/path';
 import { rulesActions } from './logic/rulesActions';
+import { Illustration } from './art/Illustration';
 import styles from './Lesson.module.css';
 
 const PATH = `${routes.learn()}?level=beginner`;
@@ -28,6 +29,14 @@ export function BlockQuizPage() {
   useEffect(() => {
     if (allDrillsDone && !rules.run) rulesActions.saveRun(FRESH);
   }, [allDrillsDone, rules.run]);
+
+  // Bring coach feedback into view after each answer.
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  const currentQ = RULES_QUIZ[run.index];
+  const answeredKey = !run.finished && currentQ && run.answers[currentQ.id] ? currentQ.id : '';
+  useEffect(() => {
+    if (answeredKey) feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [answeredKey]);
 
   if (!allDrillsDone) {
     return (
@@ -155,6 +164,7 @@ export function BlockQuizPage() {
         </h1>
       </header>
       <div className={styles.stepWrap}>
+        {q.art && <Illustration key={q.id} art={q.art} size="sm" />}
         <div className={styles.options} role="radiogroup" aria-labelledby={`bq-${q.id}`}>
           {q.options.map((o) => (
             <OptionCard
@@ -171,7 +181,7 @@ export function BlockQuizPage() {
           ))}
         </div>
         {answered && (
-          <div role="status">
+          <div role="status" ref={feedbackRef}>
             <CoachPrompt tone={correct ? 'success' : 'danger'} state={correct ? 'correct' : 'incorrect'}>
               {correct ? `Correct! ${q.explain}` : `Not this time. ${q.explain}`}
             </CoachPrompt>

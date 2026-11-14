@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { exerciseId } from '@/shared/fixtures/ids';
 import { POINTS_FOR_FIRST_CORRECT } from '@/shared/contracts/catalog';
 import { scoreboardActions, scoreKey, useGuestSlice } from '@/shared/state';
 import { Button, CoachPrompt, OptionCard } from '@/shared/ui';
 import { Pitch } from '../Pitch';
+import { Illustration } from '../art/Illustration';
 import { laneStatuses } from '../logic/geometry';
 import type { Lesson, QuizAnswer } from '../types';
 import styles from '../Lesson.module.css';
@@ -35,6 +36,12 @@ export function QuizStep({
 
   const locked = status === 'right';
 
+  // Bring coach feedback into view after each check.
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (status !== 'idle') feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [status, attempts]);
+
   const check = () => {
     if (!selected) return;
     const correct = selected === quiz.correctId;
@@ -65,6 +72,7 @@ export function QuizStep({
       <p className={styles.question} id={`q-${lesson.id}`}>
         {quiz.question}
       </p>
+      {!diagram && quiz.art && <Illustration art={quiz.art} size="sm" />}
       {diagram && (
         <Pitch
           label="Quiz setup: passer, three teammates and two defenders"
@@ -96,7 +104,7 @@ export function QuizStep({
         </Button>
       )}
       {feedback && (
-        <div role="status">
+        <div role="status" ref={feedbackRef}>
           <CoachPrompt tone={status === 'right' ? 'success' : 'danger'} state={status === 'right' ? 'correct' : 'incorrect'}>
             {feedback}
           </CoachPrompt>

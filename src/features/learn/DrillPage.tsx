@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { exerciseId } from '@/shared/fixtures/ids';
 import { routes } from '@/shared/routes';
@@ -6,6 +6,7 @@ import { scoreboardActions, useGuestSlice } from '@/shared/state';
 import { Button, ButtonLink, Card, CoachPrompt, OptionCard, ProgressBar, usePageTitle } from '@/shared/ui';
 import { RULES_BLOCK_ID, RULES_DRILLS, type Drill } from './catalog/rulesBasics';
 import { readRules } from './logic/path';
+import { Illustration } from './art/Illustration';
 import { rulesActions } from './logic/rulesActions';
 import styles from './Lesson.module.css';
 
@@ -29,6 +30,12 @@ export function DrillPage({ drill }: { drill: Drill }) {
   useEffect(() => {
     if (prevDone) rulesActions.open();
   }, [prevDone]);
+
+  // Bring coach feedback into view: the illustration can push it below the action bar on phones.
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (status !== 'idle') feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [status]);
 
   if (!prevDone && !done) {
     return (
@@ -73,6 +80,7 @@ export function DrillPage({ drill }: { drill: Drill }) {
       </header>
 
       <div className={styles.stepWrap}>
+        <Illustration art={drill.art} />
         <div className={styles.prose}>
           {drill.paragraphs.map((p) => (
             <p key={p}>{p}</p>
@@ -104,7 +112,7 @@ export function DrillPage({ drill }: { drill: Drill }) {
           ))}
         </div>
         {status !== 'idle' && (
-          <div role="status">
+          <div role="status" ref={feedbackRef}>
             <CoachPrompt tone={status === 'right' ? 'success' : 'danger'} state={status === 'right' ? 'correct' : 'incorrect'}>
               {status === 'right' ? (awarded ? `Correct! +10 points. ${drill.check.explain}` : `Correct. ${drill.check.explain}`) : `Not quite. ${drill.check.explain} Try again.`}
             </CoachPrompt>

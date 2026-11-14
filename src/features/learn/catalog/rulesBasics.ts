@@ -3,8 +3,12 @@
  * Ten short drills + a 10-question block quiz (pass mark 7/10).
  * Drills are free foundation lessons: they do NOT count toward the two free course lessons.
  */
+import type { ArtId } from '../art/Illustration';
+
 export interface ChoiceQuestion {
   id: string;
+  /** Illustration shown with the question. */
+  art?: ArtId;
   question: string;
   options: { id: string; label: string }[];
   correctId: string;
@@ -14,6 +18,7 @@ export interface ChoiceQuestion {
 
 export interface Drill {
   id: string;
+  art: ArtId;
   title: string;
   paragraphs: string[];
   keyRule: string;
@@ -28,6 +33,7 @@ export const QUIZ_PASS_MARK = 7;
 export const RULES_DRILLS: Drill[] = [
   {
     id: 'rules-drill-goal',
+    art: 'goal-line',
     title: 'What counts as a goal',
     paragraphs: [
       'A goal is scored when the whole ball crosses the goal line, between the posts and under the crossbar.',
@@ -47,6 +53,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-players',
+    art: 'eleven',
     title: 'Eleven against eleven',
     paragraphs: [
       'Each team starts with up to 11 players on the field, and one of them is the goalkeeper.',
@@ -67,6 +74,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-time',
+    art: 'clock',
     title: 'Two halves and stoppage time',
     paragraphs: [
       'A match is two halves of 45 minutes each, with a break in between.',
@@ -87,6 +95,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-out',
+    art: 'throw-in',
     title: 'In and out of play',
     paragraphs: [
       'The ball is out of play only when the whole ball crosses the touchline or the goal line, or when the referee stops play.',
@@ -107,6 +116,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-corners',
+    art: 'corner-goal-kick',
     title: 'Corner kicks and goal kicks',
     paragraphs: [
       'When the ball crosses the goal line without a goal, who touched it last decides the restart.',
@@ -126,6 +136,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-offside',
+    art: 'offside',
     title: 'Offside in plain English',
     paragraphs: [
       'A player is in an offside position if they are in the opponents’ half and closer to the opponents’ goal line than both the ball and the second-to-last defender. The goalkeeper usually counts as one of those defenders.',
@@ -145,6 +156,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-freekicks',
+    art: 'free-kick',
     title: 'Direct and indirect free kicks',
     paragraphs: [
       'Fouls are punished with free kicks. A direct free kick can be scored straight into the goal.',
@@ -164,6 +176,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-penalty',
+    art: 'penalty',
     title: 'Penalty kicks',
     paragraphs: [
       'If a defender commits a direct-free-kick foul inside their own penalty area, the attacking team gets a penalty kick.',
@@ -184,6 +197,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-cards',
+    art: 'cards',
     title: 'Yellow and red cards',
     paragraphs: [
       'A yellow card is a caution. Two yellow cards in the same match add up to a red card.',
@@ -204,6 +218,7 @@ export const RULES_DRILLS: Drill[] = [
   },
   {
     id: 'rules-drill-hands',
+    art: 'hands',
     title: 'Handball and the goalkeeper',
     paragraphs: [
       'Players may not deliberately handle the ball. Doing so is a foul.',
@@ -228,6 +243,7 @@ export const RULES_DRILLS: Drill[] = [
 export const RULES_QUIZ: ChoiceQuestion[] = [
   {
     id: 'q1',
+    art: 'goal-line',
     question: 'The ball is on the goal line with part of it still touching the line. What is the call?',
     options: [
       { id: 'play', label: 'No goal, play on' },
@@ -239,6 +255,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q2',
+    art: 'eleven',
     question: 'A team has five players sent off and only six remain. What happens?',
     options: [
       { id: 'stop', label: 'The match cannot continue' },
@@ -250,6 +267,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q3',
+    art: 'corner-goal-kick',
     question: 'An attacker’s shot goes wide over the goal line without touching anyone else. Restart?',
     options: [
       { id: 'gk', label: 'Goal kick' },
@@ -261,6 +279,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q4',
+    art: 'offside',
     question: 'Which restart can a player NOT be offside from?',
     options: [
       { id: 'corner', label: 'A corner kick' },
@@ -272,6 +291,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q5',
+    art: 'offside',
     question: 'A player is in an offside position but is far from the play and never touches the ball. Is it an offense?',
     options: [
       { id: 'no', label: 'No, being in the position alone is not an offense' },
@@ -282,6 +302,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q6',
+    art: 'free-kick',
     question: 'How does the referee show that a free kick is indirect?',
     options: [
       { id: 'arm', label: 'By raising an arm above the head' },
@@ -293,6 +314,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q7',
+    art: 'penalty',
     question: 'A defender trips an attacker inside the defender’s own penalty area. What is awarded?',
     options: [
       { id: 'pen', label: 'A penalty kick' },
@@ -304,6 +326,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q8',
+    art: 'cards',
     question: 'A team has a player sent off. Can they bring on a substitute to replace that player?',
     options: [
       { id: 'no', label: 'No, they play one player short' },
@@ -315,6 +338,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q9',
+    art: 'hands',
     question: 'The goalkeeper runs outside the penalty area and catches the ball. What is it?',
     options: [
       { id: 'foul', label: 'A handball offense' },
@@ -325,6 +349,7 @@ export const RULES_QUIZ: ChoiceQuestion[] = [
   },
   {
     id: 'q10',
+    art: 'clock',
     question: 'Why do matches often run past 90 minutes?',
     options: [
       { id: 'stoppage', label: 'The referee adds stoppage time for delays' },

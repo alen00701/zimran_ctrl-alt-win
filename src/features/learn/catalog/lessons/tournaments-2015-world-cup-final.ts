@@ -7,6 +7,7 @@ export const tournaments2015WorldCupFinal: Lesson = {
   difficulty: 'beginner',
   minutes: 5,
   summary: 'How a tournament works, and the hat trick that defined a final.',
+  art: 'bracket',
   interests: ['tournaments', 'players'],
   tags: ['tournaments', 'history', 'match-moments'],
   prerequisites: [],
@@ -35,6 +36,7 @@ export const tournaments2015WorldCupFinal: Lesson = {
     solvedMessage: 'Exactly. Groups let teams recover. Knockout rounds do not.',
   },
   quiz: {
+    art: 'trophy',
     question: 'What is a hat trick?',
     options: [
       { id: 'three', label: 'Three goals by one player in one match' },
