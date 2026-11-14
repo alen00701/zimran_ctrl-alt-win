@@ -1,9 +1,8 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { FREE_LESSON_LIMIT } from '@/shared/contracts/catalog';
 import { routes } from '@/shared/routes';
-import { guestRecords, hasMembership, isLessonUnlocked, totalPoints, useGuestState } from '@/shared/state';
-import { BrandAvatar } from '@/shared/brand';
+import { hasMembership, isLessonUnlocked, useGuestState } from '@/shared/state';
 import { Badge, ButtonLink, Card, ProgressBar, usePageTitle } from '@/shared/ui';
 import { CATALOG } from './catalog';
 import { getDrill, RULES_QUIZ_ID } from './catalog/rulesBasics';
@@ -13,6 +12,7 @@ import { MembershipCard } from './MembershipCard';
 import { BlockBanner } from './path/BlockBanner';
 import { Icon } from './path/icons';
 import { PathNode } from './path/PathNode';
+import { mascotAt } from './path/mascots';
 import styles from './path/Path.module.css';
 
 /** Zig-zag pattern from the reference path. */
@@ -61,7 +61,6 @@ export function LearnPage() {
     return () => window.clearTimeout(t);
   }, [notice]);
 
-  const points = totalPoints(guestRecords(state));
   const streak = streakDays(state);
   const member = hasMembership(course);
   const completed = course.completedLessonIds.length;
@@ -78,10 +77,6 @@ export function LearnPage() {
     <div className={styles.page}>
       {/* ---- status bar ---- */}
       <div className={styles.stats}>
-        <span className={styles.stat} data-tone="points" title="Points">
-          <Icon name="bolt" size={22} /> {points}
-          <span className="visually-hidden"> points</span>
-        </span>
         <span className={styles.stat} data-tone="streak" title="Day streak">
           <Icon name="flame" size={22} /> {streak}
           <span className="visually-hidden"> day streak</span>
@@ -144,7 +139,6 @@ export function LearnPage() {
       {/* ---- the path ---- */}
       <div className={styles.path} data-locked={view.locked || undefined}>
         {view.blocks.map((b, bi) => {
-          const mascotAt = Math.min(2, b.nodes.length - 1);
           return (
             <section key={b.block.id} className={styles.block} aria-label={`Block ${b.number}: ${b.block.title}`}>
               {bi > 0 && (
@@ -157,14 +151,16 @@ export function LearnPage() {
                 {b.nodes.map((n, i) => {
                   const x = ZIGZAG[i % ZIGZAG.length]!;
                   return (
-                    <Fragment key={n.key}>
-                      <PathNode node={n} x={x} onLocked={setNotice} />
-                      {i === mascotAt && (
-                        <li className={styles.mascotRow} aria-hidden="true" data-side={x > 0 ? 'left' : 'right'} data-dim={b.comingSoon || view.locked || undefined}>
-                          <BrandAvatar size={96} state={n.active ? 'speaking' : 'idle'} decorative />
-                        </li>
-                      )}
-                    </Fragment>
+                    <PathNode
+                      key={n.key}
+                      node={n}
+                      x={x}
+                      onLocked={setNotice}
+                      mascot={(() => {
+                        const m = mascotAt(i, b.nodes.length, x, bi);
+                        return m && { ...m, dim: b.comingSoon || view.locked || undefined };
+                      })()}
+                    />
                   );
                 })}
               </ol>

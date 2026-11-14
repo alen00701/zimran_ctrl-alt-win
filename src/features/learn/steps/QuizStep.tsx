@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { exerciseId } from '@/shared/fixtures/ids';
 import { POINTS_FOR_FIRST_CORRECT } from '@/shared/contracts/catalog';
-import { scoreboardActions, scoreKey, useGuestSlice } from '@/shared/state';
+import { gameActions, openOutOfHearts, outOfHearts, scoreboardActions, scoreKey, useGuestSlice } from '@/shared/state';
 import { Button, CoachPrompt, OptionCard } from '@/shared/ui';
 import { Pitch } from '../Pitch';
 import { Illustration } from '../art/Illustration';
@@ -44,7 +44,9 @@ export function QuizStep({
 
   const check = () => {
     if (!selected) return;
+    if (outOfHearts()) return openOutOfHearts();
     const correct = selected === quiz.correctId;
+    if (!correct) gameActions.loseHeart();
     // Always routed through the scoreboard: it ignores everything but the first attempt.
     const result = scoreboardActions.recordFirstAttempt('soccer', exId, correct);
     const n = attempts + 1;

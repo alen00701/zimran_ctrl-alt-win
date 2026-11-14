@@ -65,6 +65,9 @@
   --color-danger: var(--rtg-palette-red);
   --color-danger-subtle: var(--rtg-palette-red-tint);
   --color-danger-pressed: var(--rtg-palette-red-deep);
+  --color-pro: var(--rtg-palette-amber); /* Pro plan accent (INFERRED: reuses the amber pair) */
+  --color-pro-subtle: var(--rtg-palette-amber-tint);
+  --color-heart: var(--rtg-palette-red);
   --color-sponsored: var(--rtg-palette-amber);
   --color-sponsored-subtle: var(--rtg-palette-amber-tint);
   --color-disabled-bg: var(--rtg-palette-mist);

@@ -41,6 +41,8 @@ export const SPORTS: ReadonlyArray<{ id: SportId | string; label: string; active
 /** Product rules shared by Learn and Account. */
 export const FREE_LESSON_LIMIT = 2;
 export const POINTS_FOR_FIRST_CORRECT = 10;
+/** Hearts on the Free plan. A wrong answer costs one; Pro is unlimited. */
+export const MAX_HEARTS = 5;
 export const MEMBERSHIP_PRICE_LABEL = '$7.99/month';
 /** The demo edition date shown in the Feed header (America/New_York). */
 export const DEMO_EDITION_DATE = '2026-11-14';

@@ -4,6 +4,7 @@ import { routes } from '@/shared/routes';
 import type { ViewNode } from '../logic/path';
 import { QUIZ_PASS_MARK } from '../catalog/rulesBasics';
 import { Icon, type IconName } from './icons';
+import { PathMascot, type MascotPose } from './PathMascot';
 import styles from './Path.module.css';
 
 const STATE_LABEL: Record<ViewNode['state'], string> = {
@@ -28,7 +29,7 @@ function iconFor(n: ViewNode): IconName {
 }
 
 /** One island on the winding path. `x` is the horizontal step (-2..2). */
-export function PathNode({ node, x, onLocked }: { node: ViewNode; x: number; onLocked: (msg: string) => void }) {
+export function PathNode({ node, x, onLocked, mascot }: { node: ViewNode; x: number; onLocked: (msg: string) => void; mascot?: { pose: MascotPose; side: 'left' | 'right'; dim?: boolean } }) {
   const callout = node.active ? (node.kind === 'quiz' ? 'Quiz' : node.state === 'in-progress' ? 'Continue' : 'Start') : null;
   const label = `${node.title}, ${STATE_LABEL[node.state]}${node.score !== undefined ? `, best score ${node.score} of 10` : ''}`;
   const locked = node.state.startsWith('locked') || node.state === 'soon';
@@ -82,6 +83,7 @@ export function PathNode({ node, x, onLocked }: { node: ViewNode; x: number; onL
           {body}
         </Link>
       )}
+      {mascot && <PathMascot {...mascot} />}
     </li>
   );
 }

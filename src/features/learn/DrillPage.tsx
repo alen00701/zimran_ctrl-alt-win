@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { exerciseId } from '@/shared/fixtures/ids';
 import { routes } from '@/shared/routes';
-import { scoreboardActions, useGuestSlice } from '@/shared/state';
+import { gameActions, openOutOfHearts, outOfHearts, scoreboardActions, useGuestSlice } from '@/shared/state';
 import { Button, ButtonLink, Card, CoachPrompt, OptionCard, ProgressBar, usePageTitle } from '@/shared/ui';
 import { findDrill } from './catalog/path';
 import { RULES_BLOCK_ID, type Drill } from './catalog/rulesBasics';
@@ -55,7 +55,9 @@ export function DrillPage({ drill }: { drill: Drill }) {
 
   const check = () => {
     if (!selected) return;
+    if (outOfHearts()) return openOutOfHearts();
     const correct = selected === drill.check.correctId;
+    if (!correct) gameActions.loseHeart();
     const r = scoreboardActions.recordFirstAttempt('soccer', exerciseId.lessonStep(block.id, `drill-${drill.check.id}`), correct);
     setAwarded(r.awarded > 0);
     setStatus(correct ? 'right' : 'wrong');
@@ -63,6 +65,8 @@ export function DrillPage({ drill }: { drill: Drill }) {
   };
 
   const complete = () => {
+    // Finishing a lesson earns a one-time bonus, so replays and reloads add nothing.
+    scoreboardActions.recordFirstAttempt('soccer', exerciseId.lessonStep(drill.id, 'complete'), true);
     actions.completeDrill(drill.id, doneSet.size + (done ? 0 : 1));
     navigate(PATH);
   };

@@ -1,4 +1,5 @@
 import type { GuestState } from '../contracts/types';
+import { MAX_HEARTS } from '../contracts/catalog';
 
 export function createDefaultState(): GuestState {
   return {
@@ -12,5 +13,6 @@ export function createDefaultState(): GuestState {
     },
     community: { groups: {}, rsvps: {} },
     scoreboard: { records: {} },
+    game: { hearts: MAX_HEARTS },
   };
 }

@@ -159,6 +159,13 @@ export interface LeaderboardPlayer {
   records: ScoreRecord[];
 }
 
+/* ---------- Game (hearts) ---------- */
+
+export interface GameState {
+  /** Hearts left on the Free plan, 0..MAX_HEARTS. Pro (demo membership) never spends them. */
+  hearts: number;
+}
+
 /* ---------- Whole guest profile ---------- */
 
 export interface GuestState {
@@ -167,6 +174,7 @@ export interface GuestState {
   course: CourseState;
   community: CommunityState;
   scoreboard: ScoreboardState;
+  game: GameState;
 }
 
 export type GuestSlice = keyof GuestState;

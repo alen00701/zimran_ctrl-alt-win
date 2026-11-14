@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { BrandAvatar } from '@/shared/brand';
 import { DEMO_EVENT, exerciseId } from '@/shared/fixtures/ids';
-import { feedActions, scoreboardActions, useGuestState } from '@/shared/state';
+import { feedActions, gameActions, scoreboardActions, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
-import { Badge, Button, ButtonLink, usePageTitle } from '@/shared/ui';
+import { Badge, Button, ButtonLink, StatusBar, usePageTitle } from '@/shared/ui';
 import { dateLabel, editionQuizId, quizStory, rankStreamStories, streamQuizzes, type FeedPost, type FeedQuiz } from './content';
 import { MatchPick, ShareStory, StoryQuiz } from './FeedWidgets';
 import { storyMedia } from './media';
@@ -35,6 +35,7 @@ function QuizReel({ quiz, index, total }: { quiz: FeedQuiz; index: number; total
       {outcome?.status === 'answered' ? <p role="status">{quiz.explanation}</p> : <div className={styles.quizAnswers}>{quiz.options.map((option, optionIndex) => <Button key={option} variant="inverse" onClick={() => {
         const correct = optionIndex === quiz.correct;
         feedActions.answerQuiz(quiz.id, String(optionIndex), correct);
+        if (!correct) gameActions.loseHeart();
         scoreboardActions.recordFirstAttempt('soccer', exerciseId.feedQuiz(quiz.id), correct);
       }}>{option}</Button>)}</div>}
       {outcome?.status !== 'answered' && <Button variant="ghost" className={styles.skipQuiz} onClick={() => feedActions.dismissQuiz(quiz.id)}>Not now · keep watching</Button>}
@@ -147,7 +148,7 @@ export function FeedPage() {
   const open = (type: 'details' | 'share' | 'quiz', post: FeedPost) => { if (type === 'details') feedActions.markPostViewed(post.id, post.tags); setPanel({ type, post }); };
   return <section className={styles.experience} aria-label="Soccer media feed">
     <div className={styles.stage}>
-      <header className={styles.topbar}><h1 className={styles.srOnly}>Your soccer feed</h1><div className={styles.tabs}><Button variant="ghost" className={mode === 'all' ? styles.selected : ''} aria-pressed={mode === 'all'} onClick={() => setMode('all')}>For you</Button><Button variant="ghost" className={mode === 'videos' ? styles.selected : ''} aria-pressed={mode === 'videos'} onClick={() => setMode('videos')}>Videos</Button></div><Link to={routes.onboarding({ returnTo: routes.feed(), edit: true })} aria-label="Personalize your feed">Tune ↗</Link></header>
+      <header className={styles.topbar}><h1 className={styles.srOnly}>Your soccer feed</h1><div className={styles.tabs}><Button variant="ghost" className={mode === 'all' ? styles.selected : ''} aria-pressed={mode === 'all'} onClick={() => setMode('all')}>For you</Button><Button variant="ghost" className={mode === 'videos' ? styles.selected : ''} aria-pressed={mode === 'videos'} onClick={() => setMode('videos')}>Videos</Button></div><StatusBar compact /><Link className={styles.tune} to={routes.onboarding({ returnTo: routes.feed(), edit: true })} aria-label="Personalize your feed">Tune ↗</Link></header>
       <div className={styles.viewport} ref={viewport} tabIndex={0} aria-label="Swipe up for the next story, or use arrow keys" onScroll={e => setActive(Math.round(e.currentTarget.scrollTop / e.currentTarget.clientHeight))} onKeyDown={e => { if (e.target !== e.currentTarget || !['ArrowDown', 'ArrowUp'].includes(e.key)) return; e.preventDefault(); move(e.key === 'ArrowDown' ? 1 : -1); }}>
         {stream.map((item, index) => {
           if (item.type === 'post') return <Reel key={item.key} post={item.post} active={active === index && !panel} open={open} index={index} total={total} />;

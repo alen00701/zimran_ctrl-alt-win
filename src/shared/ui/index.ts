@@ -10,3 +10,5 @@ export type { BadgeVariant } from './Badge';
 export { Card } from './Card';
 export type { CardVariant } from './Card';
 export { PageHeader, usePageTitle } from './PageHeader';
+export { StatusBar, HeartIcon } from './StatusBar';
+export { OutOfHeartsDialog } from './OutOfHeartsDialog';

@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
-import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router';
+import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { BrandAvatar } from '@/shared/brand';
 import { TABS, routes } from '@/shared/routes';
+import { OutOfHeartsDialog, StatusBar } from '@/shared/ui';
 import { TabIcon } from './TabIcon';
 import styles from './AppShell.module.css';
 
@@ -10,6 +11,9 @@ import styles from './AppShell.module.css';
  * Exactly four tabs: Feed · Learn · Community · Account.
  */
 export function AppShell() {
+  const { pathname } = useLocation();
+  // The Feed is a full-screen stream that carries its own compact status bar.
+  const immersiveFeed = pathname.replace(/\/+$/, '') === routes.feed();
   return (
     <div className={styles.shell}>
       <a className={styles.skip} href="#main">
@@ -33,11 +37,17 @@ export function AppShell() {
       </nav>
       <main id="main" className={styles.main} tabIndex={-1}>
         <div className={styles.content}>
+          {!immersiveFeed && (
+            <div className={styles.status}>
+              <StatusBar />
+            </div>
+          )}
           <Suspense fallback={<p className={styles.loading}>Loading…</p>}>
             <Outlet />
           </Suspense>
         </div>
       </main>
+      <OutOfHeartsDialog />
       <ScrollRestoration />
     </div>
   );

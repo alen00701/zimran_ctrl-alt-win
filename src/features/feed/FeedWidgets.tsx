@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DEMO_MATCH_ID, exerciseId } from '@/shared/fixtures/ids';
-import { feedActions, scoreboardActions, useGuestState } from '@/shared/state';
+import { feedActions, gameActions, scoreboardActions, useGuestState } from '@/shared/state';
 import { Badge, Button, Card, CoachPrompt, OptionCard } from '@/shared/ui';
 import { routes } from '@/shared/routes';
 import { editionQuizId, quizStory } from './content';
@@ -20,6 +20,7 @@ export function StoryQuiz() {
       <div className={styles.stack}>{story.options.map((option, i) => <Button key={option} variant="secondary" onClick={() => {
         const correct = i === story.correct;
         feedActions.answerQuiz(editionQuizId, String(i), correct);
+        if (!correct) gameActions.loseHeart();
         scoreboardActions.recordFirstAttempt('soccer', exerciseId.feedQuiz(editionQuizId), correct);
       }}>{option}</Button>)}</div>
       <Button variant="ghost" onClick={() => feedActions.dismissQuiz(editionQuizId)}>Skip this quiz</Button>

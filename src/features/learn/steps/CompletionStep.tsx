@@ -1,7 +1,7 @@
 import { FREE_LESSON_LIMIT } from '@/shared/contracts/catalog';
 import { exerciseId } from '@/shared/fixtures/ids';
 import { routes } from '@/shared/routes';
-import { hasMembership, isLessonUnlocked, scoreKey, useGuestState } from '@/shared/state';
+import { guestRecords, hasMembership, isLessonUnlocked, scoreKey, totalPoints, useGuestState } from '@/shared/state';
 import { Button, ButtonLink, Card, CoachPrompt } from '@/shared/ui';
 import { CATALOG } from '../catalog';
 import { useRecommendations } from '../hooks';
@@ -12,7 +12,9 @@ import styles from '../Lesson.module.css';
 export function CompletionStep({ lesson, onReplay }: { lesson: Lesson; onReplay: () => void }) {
   const state = useGuestState();
   const recs = useRecommendations();
-  const points = state.scoreboard.records[scoreKey('soccer', exerciseId.lessonStep(lesson.id, 'quiz'))]?.points ?? 0;
+  const earned = (step: string) => state.scoreboard.records[scoreKey('soccer', exerciseId.lessonStep(lesson.id, step))]?.points ?? 0;
+  const points = earned('quiz') + earned('complete');
+  const total = totalPoints(guestRecords(state));
   const completedCount = state.course.completedLessonIds.length;
   const next = recs.find((r) => r.state !== 'completed' && r.lessonId !== lesson.id);
   const nextLesson = next ? CATALOG.find((l) => l.id === next.lessonId) : undefined;
@@ -22,7 +24,7 @@ export function CompletionStep({ lesson, onReplay }: { lesson: Lesson; onReplay:
   return (
     <div className={styles.stack}>
       <CoachPrompt tone="success" state="celebrate" avatarSize="lg">
-        Lesson complete! {points > 0 ? `You earned ${points} points.` : 'No points this time, but you finished it.'}
+        Lesson complete! {points > 0 ? `You earned ${points} points. Total: ${total}.` : 'No points this time, but you finished it.'}
       </CoachPrompt>
 
       <Card variant="subtle" className={styles.summaryCard}>

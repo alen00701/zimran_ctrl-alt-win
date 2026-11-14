@@ -7,6 +7,8 @@
 .shade { position: absolute; inset: 0; z-index: -2; background: linear-gradient(to bottom, color-mix(in srgb, var(--color-surface-inverse) 65%, transparent), transparent 25%, color-mix(in srgb, var(--color-surface-inverse) 15%, transparent) 40%, color-mix(in srgb, var(--color-surface-inverse) 86%, transparent) 72%, var(--color-surface-inverse)); }
 .topbar { position: absolute; inset: 0 0 auto; z-index: 4; padding: var(--space-3) var(--space-5); display: flex; align-items: center; justify-content: space-between; background: linear-gradient(var(--color-surface-inverse), transparent); }
 .tabs { display: flex; gap: var(--space-3); }
+.topbar { gap: var(--space-2); }
+@media (max-width: 560px) { .topbar .tune { display: none; } .topbar { padding-inline: var(--space-3); } .tabs { gap: var(--space-2); } }
 .topbar .tabs button { color: var(--color-text-on-inverse); background: transparent; border: 0; border-radius: 0; padding: var(--space-2) 0; opacity: .65; }
 .topbar .tabs .selected { opacity: 1; border-bottom: var(--border-width) solid var(--color-text-on-inverse); }
 .topbar a { color: var(--color-text-on-inverse); font-size: var(--text-sm); text-decoration: none; padding: var(--space-3) 0; }

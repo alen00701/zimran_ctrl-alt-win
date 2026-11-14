@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { courseActions, useGuestSlice } from '@/shared/state';
+import { exerciseId } from '@/shared/fixtures/ids';
+import { courseActions, scoreboardActions, useGuestSlice } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { Button, ProgressBar, usePageTitle } from '@/shared/ui';
 import { CompletionStep } from './steps/CompletionStep';
@@ -61,6 +62,8 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   };
 
   const finish = () => {
+    // Finishing a lesson earns a one-time bonus; replays and reloads add nothing.
+    scoreboardActions.recordFirstAttempt('soccer', exerciseId.lessonStep(lesson.id, 'complete'), true);
     courseActions.completeLesson(lesson.id);
     go(STEP_COUNT);
   };

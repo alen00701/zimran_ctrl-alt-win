@@ -10,6 +10,7 @@
  *   never overwritten silently: we keep a backup key.
  */
 import type { GuestSlice, GuestState, StoredEnvelope } from '../contracts/types';
+import { MAX_HEARTS } from '../contracts/catalog';
 import { createDefaultState } from './defaults';
 
 export const STORAGE_KEY = 'rtg.guest';
@@ -61,6 +62,8 @@ export function normalizeState(input: unknown): GuestState {
   const m = isObj(c.membership) ? c.membership : {};
   const cm = isObj(input.community) ? input.community : {};
   const s = isObj(input.scoreboard) ? input.scoreboard : {};
+  const g = isObj(input.game) ? input.game : {};
+  const hearts = typeof g.hearts === 'number' && Number.isFinite(g.hearts) ? Math.min(MAX_HEARTS, Math.max(0, Math.floor(g.hearts))) : MAX_HEARTS;
   const expertise = p.expertise;
   return {
     preferences: {
@@ -80,6 +83,7 @@ export function normalizeState(input: unknown): GuestState {
     },
     community: { groups: rec(cm.groups), rsvps: rec(cm.rsvps) },
     scoreboard: { records: rec(s.records) },
+    game: { hearts },
   };
 }
 

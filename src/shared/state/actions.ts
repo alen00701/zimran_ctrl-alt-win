@@ -17,8 +17,10 @@ import type {
   StepId,
   SubjectTag,
 } from '../contracts/types';
-import { POINTS_FOR_FIRST_CORRECT } from '../contracts/catalog';
-import { RESET_CONFIRMATION, resetGuestState, updateSlice } from './storage';
+import { MAX_HEARTS, POINTS_FOR_FIRST_CORRECT } from '../contracts/catalog';
+import { openOutOfHearts } from './heartsUi';
+import { hasMembership } from './selectors';
+import { getGuestState, RESET_CONFIRMATION, resetGuestState, updateSlice } from './storage';
 
 const now = () => new Date().toISOString();
 
@@ -204,6 +206,44 @@ export const scoreboardActions = {
     });
     return result!;
   },
+};
+
+/* ---------- game: plan and hearts ---------- */
+
+export type Plan = 'free' | 'pro';
+
+export const gameActions = {
+  /** Pro is the demo membership, so Learn's paywall, Account and the status bar always agree. No card, no charge. */
+  setPlan(plan: Plan) {
+    if (plan === 'pro') courseActions.startDemoMembership();
+    else courseActions.endDemoMembership();
+  },
+  /**
+   * A wrong answer. Free: one heart is spent (never below 0) and the out-of-hearts dialog opens at 0.
+   * Pro: nothing is spent. Returns what happened so callers can animate it.
+   */
+  loseHeart(): { lost: boolean; hearts: number } {
+    const state = getGuestState();
+    if (hasMembership(state.course)) return { lost: false, hearts: state.game.hearts };
+    if (state.game.hearts <= 0) {
+      openOutOfHearts();
+      return { lost: false, hearts: 0 };
+    }
+    const hearts = state.game.hearts - 1;
+    updateSlice('game', (g) => ({ ...g, hearts }));
+    if (hearts === 0) openOutOfHearts();
+    return { lost: true, hearts };
+  },
+  /** Demo refill. */
+  refillHearts() {
+    updateSlice('game', (g) => (g.hearts === MAX_HEARTS ? g : { ...g, hearts: MAX_HEARTS }));
+  },
+};
+
+/** True when a Free visitor has no hearts left. Learn blocks answers then; the Feed never does. */
+export const outOfHearts = () => {
+  const s = getGuestState();
+  return !hasMembership(s.course) && s.game.hearts <= 0;
 };
 
 /* ---------- reset ---------- */

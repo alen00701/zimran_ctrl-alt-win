@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { exerciseId } from '@/shared/fixtures/ids';
 import { routes } from '@/shared/routes';
-import { guestRecords, scoreboardActions, useGuestState } from '@/shared/state';
+import { gameActions, guestRecords, openOutOfHearts, outOfHearts, scoreboardActions, useGuestState } from '@/shared/state';
 import { Button, ButtonLink, Card, CoachPrompt, OptionCard, ProgressBar, usePageTitle } from '@/shared/ui';
 import { QUIZ_PASS_MARK, RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ } from './catalog/rulesBasics';
 import { passes, quizScore, readRules, type QuizRun } from './logic/path';
@@ -134,6 +134,8 @@ export function BlockQuizPage() {
 
   const check = () => {
     if (!picked) return;
+    if (outOfHearts()) return openOutOfHearts();
+    if (picked !== q.correctId) gameActions.loseHeart();
     scoreboardActions.recordFirstAttempt('soccer', exerciseId.lessonStep(RULES_BLOCK_ID, `quiz-${q.id}`), picked === q.correctId);
     rulesActions.saveRun({ ...run, answers: { ...run.answers, [q.id]: picked } });
   };
@@ -142,6 +144,8 @@ export function BlockQuizPage() {
     setPicked(null);
     if (!last) return rulesActions.saveRun({ ...run, index: run.index + 1 });
     const score = quizScore(run.answers);
+    // Passing the block quiz earns a one-time bonus.
+    if (passes(score)) scoreboardActions.recordFirstAttempt('soccer', exerciseId.lessonStep(RULES_BLOCK_ID, 'quiz-passed'), true);
     const prev = rules.quiz;
     rulesActions.saveRecord({
       best: Math.max(prev?.best ?? 0, score),

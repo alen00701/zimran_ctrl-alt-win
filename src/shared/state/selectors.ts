@@ -38,3 +38,6 @@ export const guestRecords = (s: GuestState, sportId: SportId = 'soccer'): ScoreR
   Object.values(s.scoreboard.records).filter((r) => r.sportId === sportId);
 
 export const totalPoints = (records: ScoreRecord[]) => records.reduce((n, r) => n + r.points, 0);
+
+/** Pro = demo membership. */
+export const isPro = (s: GuestState) => hasMembership(s.course);

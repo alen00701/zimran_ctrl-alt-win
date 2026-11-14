@@ -52,3 +52,9 @@ Each level has three playable blocks of 10 lessons (blocks 4 and 5 are still "Co
 - Only Rules basics is taken in order. Other blocks open in any order.
 - Level locks: a level above the visitor's chosen level (new → Beginner, familiar → up to Intermediate, expert → all) is locked until the level before it is finished or the visitor changes their level. In a locked level the first lesson of every block stays open as a preview.
 - The first lesson of every block is always open, including in Beginner for newcomers who have not yet passed Rules basics. The other Beginner blocks stay locked until the Rules basics quiz is passed.
+
+## Hearts, Pro and points (shared)
+- `game.hearts` (0–5) lives in the saved profile (`@/shared/state`). `gameActions.loseHeart()` is called on every wrong lesson, drill, block-quiz and Feed-quiz answer. Pro (= demo membership) never spends hearts. At 0 on Free, Learn blocks answers and shows the out-of-hearts dialog (Switch to Pro / Restore hearts). The Feed never blocks.
+- The Free ↔ Pro switch and the points/hearts chips are `StatusBar` (`shared/ui`), shown on every tab (compact version on top of the Feed).
+- Points are the scoreboard records. Finishing a lesson or drill and passing the block quiz each add a one-time 10-point bonus (`learn:<id>:complete`).
+- Path mascots: `path/mascots.ts` picks the pose per node (wave, think, cheer, trophy). The coach artwork has one pose, so poses use motion and props.
