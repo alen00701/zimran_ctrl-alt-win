@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import type { GuestState } from '@/shared/contracts/types';
-import { communityActions, isGoing, useGuestState } from '@/shared/state';
+import { BrandAvatar } from '@/shared/brand';
+import { communityActions, goingEventIds, isGoing, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
-import { Badge, Button, ButtonLink, Card, PageHeader } from '@/shared/ui';
+import { Badge, Button, ButtonLink, Card, usePageTitle } from '@/shared/ui';
 import { DEMO_LOCATION, EVENT_KINDS, eventsOfKind, findEvent, type CommunityEvent, type EventKind } from './content';
 import { countdownLabel, eventShortDateLabel, eventTimeLabel } from './format';
 import { DEMO_FRIENDS, friendsGoingLabel, initials } from './friends';
@@ -33,17 +34,33 @@ export function CommunityPage() {
       { replace: true },
     );
 
+  usePageTitle('Community');
+  const now = useNow();
+  const board = buildLeagueBoard(state, now);
+  const going = goingEventIds(state).length;
+
   return (
-    <>
-      <PageHeader
-        title="Community"
-        subtitle="Watch and play near you"
-        actions={
-          <Button variant="secondary" onClick={toggleFriends} aria-expanded={showFriends} aria-controls="friends-panel">
-            <span aria-hidden="true">👥</span> Friends <span className={styles.countPill}>{DEMO_FRIENDS.length}</span>
-          </Button>
-        }
-      />
+    <div className={styles.page}>
+      <section className={styles.hero} aria-label="Community">
+        <div className={styles.heroBand} aria-hidden="true" />
+        <div className={styles.heroTop}>
+          <BrandAvatar size={124} state="speaking" decorative className={styles.heroAvatar} />
+          <div className={styles.heroText}>
+            <p className={styles.heroEyebrow}>Matchdays · play days · friends</p>
+            <h1 className={styles.heroTitle}>Community</h1>
+            <p className={styles.heroSub}>Watch and play near you</p>
+            <Button variant="inverse" onClick={toggleFriends} aria-expanded={showFriends} aria-controls="friends-panel">
+              <span aria-hidden="true">👥</span> Friends <span className={styles.countPill}>{DEMO_FRIENDS.length}</span>
+            </Button>
+          </div>
+        </div>
+        <ul className={styles.tiles}>
+          <li className={styles.tile} data-tone="green"><span className={styles.tileIcon}>🎟️</span><strong>{going}</strong><span>You’re going</span></li>
+          <li className={styles.tile} data-tone="purple"><span className={styles.tileIcon}>👥</span><strong>{DEMO_FRIENDS.length}</strong><span>Friends</span></li>
+          <li className={styles.tile} data-tone="amber"><span className={styles.tileIcon}>🏆</span><strong>#{board.you.rank}</strong><span>League rank</span></li>
+          <li className={styles.tile} data-tone="red"><span className={styles.tileIcon}>⏱</span><strong>{timeLeftLabel(board.endsAt, now)}</strong><span>Week ends</span></li>
+        </ul>
+      </section>
       <div className={styles.stack}>
         {showFriends && <FriendsPanel state={state} onClose={toggleFriends} />}
 
@@ -62,10 +79,9 @@ export function CommunityPage() {
           );
         })}
 
-        <LeagueCard state={state} />
-
+        <LeagueCard board={board} now={now} />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -82,11 +98,12 @@ function FriendsPanel({ state, onClose }: { state: GuestState; onClose: () => vo
   };
   return (
     <section id="friends-panel" aria-labelledby="friends-title">
-      <Card className={styles.friends}>
+      <Card className={styles.friends} data-tone="green">
         <div className={styles.friendsHead}>
           <h2 id="friends-title" className={styles.boardTitle}>
             <span aria-hidden="true">👥 </span>Friends
           </h2>
+          <BrandAvatar size={56} state="speaking" decorative className={styles.headAvatar} />
           <Badge variant="demo">Demo friends</Badge>
         </div>
         <ul className={styles.friendList}>
@@ -162,11 +179,12 @@ function EventCard({ event, going, viewer }: { event: CommunityEvent; going: boo
   const friends = friendsGoingLabel(event.id);
   const to = routes.event(event.id);
   return (
-    <article className={styles.featured} data-kind={event.kind}>
+    <article className={styles.featured} data-kind={event.kind} data-tone={event.kind === 'play-day' ? 'green' : 'purple'}>
       <Link to={to} className={styles.featuredMedia} tabIndex={-1} aria-hidden="true">
         <VenuePhoto photo={event.photo} />
         <span className={styles.mediaNote}>Sample photo</span>
       </Link>
+      <BrandAvatar size={88} state={event.kind === 'play-day' ? 'idle' : 'celebrate'} decorative className={styles.cardAvatar} />
       <div className={styles.featuredBody}>
         <div className={styles.cardTop}>
           <h2 id={`section-${event.kind}`} className={styles.kicker}>
@@ -223,17 +241,16 @@ const MEDALS = [
 ] as const;
 const medal = (rank: number) => MEDALS[rank - 1];
 
-function LeagueCard({ state }: { state: GuestState }) {
-  const now = useNow();
-  const board = buildLeagueBoard(state, now);
+function LeagueCard({ board, now }: { board: ReturnType<typeof buildLeagueBoard>; now: Date }) {
   return (
     <section aria-labelledby="league-title">
-      <Card className={styles.board}>
+      <Card className={styles.board} data-tone="amber">
         <div className={styles.boardHead}>
           <h2 id="league-title" className={styles.boardTitle}>
             <span aria-hidden="true">🥈 </span>
             {LEAGUE_NAME}
           </h2>
+          <BrandAvatar size={56} state="celebrate" decorative className={styles.headAvatar} />
           <span className={styles.timer}>
             <span aria-hidden="true">⏱</span>
             <span className="visually-hidden">Week ends in </span>
@@ -247,7 +264,7 @@ function LeagueCard({ state }: { state: GuestState }) {
           {board.rows.map((r) => {
             const m = medal(r.rank);
             return (
-              <li key={r.id} className={styles.boardRow} data-you={r.isYou || undefined}>
+              <li key={r.id} className={styles.boardRow} data-you={r.isYou || undefined} data-place={r.rank <= 3 ? r.rank : undefined}>
                 <span className={styles.rank}>
                   {m ? <span role="img" aria-label={m.label}>{m.icon}</span> : r.rank}
                 </span>
