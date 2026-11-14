@@ -7,7 +7,7 @@
  */
 import { DEMO_EVENT, DEMO_GROUP, DEMO_PLAY_DAY, SEED_POSTS } from '@/shared/fixtures/ids';
 import matchupUrl from './assets/watch-party-matchup.png';
-import fieldUrl from './assets/play-day-field.jpg';
+import fieldUrl from './assets/play-day-stadium.jpg';
 
 export interface CommunityGroup {
   id: string;
@@ -158,9 +158,9 @@ export const PLAY_DAY: PlayDayEvent = {
   },
   photo: {
     src: fieldUrl,
-    width: 547,
-    height: 365,
-    alt: 'Aerial view of a green artificial-turf soccer field with white markings and orange benches',
+    width: 738,
+    height: 414,
+    alt: 'A stadium pitch with striped grass, a goal and a stand of red seats behind it',
   },
   priceLabel: 'Free',
   organizer: { name: DEMO_GROUP.name, groupId: DEMO_GROUP.id },
