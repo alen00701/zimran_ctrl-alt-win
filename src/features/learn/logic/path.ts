@@ -76,7 +76,7 @@ export const isDifficulty = (v: string | null): v is Difficulty =>
 /* ---------- node view model ---------- */
 
 export type NodeKind = 'drill' | 'lesson' | 'quiz' | 'soon';
-export type NodeState = 'done' | 'open' | 'in-progress' | 'locked-order' | 'locked-rules' | 'locked-members' | 'soon';
+export type NodeState = 'done' | 'open' | 'in-progress' | 'locked-order' | 'locked-rules' | 'locked-level' | 'locked-members' | 'soon';
 
 export interface ViewNode {
   key: string;
@@ -109,6 +109,8 @@ export interface ViewLevel {
   blocks: ViewBlock[];
   done: number;
   total: number;
+  /** Above the visitor's level and not yet earned. Only the first lesson of each block is open (a preview). */
+  locked: boolean;
 }
 
 export interface PathInput {
@@ -118,6 +120,8 @@ export interface PathInput {
   recs: Recommendation[];
 }
 
+export const levelIndex = (expertise: Expertise | null) => (expertise === 'expert' ? 2 : expertise === 'familiar' ? 1 : 0);
+export const LEVEL_LOCK = 'This level is above the one you picked. Finish the level before it, or change your level, to unlock it. The first lesson of every block is open as a preview.';
 export const RULES_LOCK = 'Finish Rules basics and pass its quiz first. It unlocks the rest of the Beginner level.';
 const ORDER_LOCK = 'Finish the previous lesson in this block first.';
 const QUIZ_LOCK = 'Finish all ten Rules basics lessons to unlock the block quiz.';
@@ -130,12 +134,16 @@ export function buildPath(input: PathInput): ViewLevel[] {
   const titleOf = (id: string) => lessons.find((l) => l.id === id)?.title ?? id;
   const recRank = new Map(recs.map((r, i) => [r.lessonId, i]));
 
+  let prevComplete = true;
   return LEVELS.map((level, li) => {
+    // A level opens when it is at or below the visitor's level, or once the level before it is finished.
+    const levelLocked = li > levelIndex(expertise) && !prevComplete;
     const blocks: ViewBlock[] = level.blocks.map((block, bi) => {
       const nodes: ViewNode[] = [];
       let firstUndoneSeen = false;
 
-      for (const ref of block.nodes) {
+      for (const [ri, ref] of block.nodes.entries()) {
+        const first = ri === 0;
         if (ref.kind === 'drill') {
           const drill = ALL_DRILLS.find((d) => d.id === ref.id);
           const isRulesBlock = block.id === RULES_BLOCK_ID;
@@ -147,7 +155,10 @@ export function buildPath(input: PathInput): ViewLevel[] {
             if (isRulesBlock && firstUndoneSeen) {
               state = 'locked-order';
               lockReason = ORDER_LOCK;
-            } else if (!isRulesBlock && gate && level.id === 'beginner') {
+            } else if (!first && levelLocked) {
+              state = 'locked-level';
+              lockReason = LEVEL_LOCK;
+            } else if (!first && !isRulesBlock && gate && level.id === 'beginner') {
               state = 'locked-rules';
               lockReason = RULES_LOCK;
             }
@@ -161,7 +172,10 @@ export function buildPath(input: PathInput): ViewLevel[] {
           let state: NodeState;
           let lockReason: string | undefined;
           if (course.completedLessonIds.includes(id)) state = 'done';
-          else if (gate && level.id === 'beginner') {
+          else if (!first && levelLocked) {
+            state = 'locked-level';
+            lockReason = LEVEL_LOCK;
+          } else if (!first && gate && level.id === 'beginner') {
             state = 'locked-rules';
             lockReason = RULES_LOCK;
           } else if (!isLessonUnlocked(course, id)) {
@@ -215,15 +229,19 @@ export function buildPath(input: PathInput): ViewLevel[] {
         .filter(({ n }) => (n.kind === 'lesson' || (n.kind === 'drill' && !isRules(n))) && (n.state === 'open' || n.state === 'in-progress'))
         .sort((a, b) => Number(b.n.state === 'in-progress') - Number(a.n.state === 'in-progress') || rank(a.n.id) - rank(b.n.id) || a.order - b.order)[0]?.n;
     // Only the Beginner level starts with the Rules basics gate; other levels open straight away.
-    const active = gate && level.id === 'beginner' ? pickRules() : (pickNext() ?? pickRules());
+    const active = levelLocked ? undefined : gate && level.id === 'beginner' ? pickRules() : (pickNext() ?? pickRules());
     if (active) active.active = true;
 
+    const done = blocks.reduce((s, b) => s + b.done, 0);
+    const total = blocks.reduce((s, b) => s + b.total, 0);
+    prevComplete = total > 0 && done === total;
     return {
       level,
       number: li + 1,
       blocks,
-      done: blocks.reduce((s, b) => s + b.done, 0),
-      total: blocks.reduce((s, b) => s + b.total, 0),
+      done,
+      total,
+      locked: levelLocked,
     };
   });
 }

@@ -8,7 +8,7 @@ import { Badge, ButtonLink, Card, ProgressBar, usePageTitle } from '@/shared/ui'
 import { CATALOG } from './catalog';
 import { getDrill, RULES_QUIZ_ID } from './catalog/rulesBasics';
 import { useRecommendations } from './hooks';
-import { buildPath, defaultLevel, isDifficulty, readRules, rulesRequired, streakDays, type ViewNode } from './logic/path';
+import { buildPath, defaultLevel, isDifficulty, LEVEL_LOCK, readRules, rulesRequired, streakDays, type ViewNode } from './logic/path';
 import { MembershipCard } from './MembershipCard';
 import { BlockBanner } from './path/BlockBanner';
 import { Icon } from './path/icons';
@@ -102,8 +102,10 @@ export function LearnPage() {
             type="button"
             className={styles.levelBtn}
             aria-pressed={l.level.id === view.level.id}
+            data-locked={l.locked || undefined}
             onClick={() => selectLevel(l.level.id)}
           >
+            {l.locked && <Icon name="lock" size={16} />}
             {l.level.label}
           </button>
         ))}
@@ -130,8 +132,17 @@ export function LearnPage() {
 
       {active && <NextUp node={active} reason={recs.find((r) => r.lessonId === active.id)?.reason} rulesDone={rules.done.size} />}
 
+      {view.locked && (
+        <Card variant="inverse" className={styles.lockedLevel}>
+          <p>
+            <strong>{view.level.label} is locked.</strong> {LEVEL_LOCK}
+          </p>
+          <ButtonLink to={routes.onboarding({ edit: true, returnTo: routes.learn() })}>Change my level</ButtonLink>
+        </Card>
+      )}
+
       {/* ---- the path ---- */}
-      <div className={styles.path}>
+      <div className={styles.path} data-locked={view.locked || undefined}>
         {view.blocks.map((b, bi) => {
           const mascotAt = Math.min(2, b.nodes.length - 1);
           return (
@@ -149,7 +160,7 @@ export function LearnPage() {
                     <Fragment key={n.key}>
                       <PathNode node={n} x={x} onLocked={setNotice} />
                       {i === mascotAt && (
-                        <li className={styles.mascotRow} aria-hidden="true" data-side={x > 0 ? 'left' : 'right'} data-dim={b.comingSoon || undefined}>
+                        <li className={styles.mascotRow} aria-hidden="true" data-side={x > 0 ? 'left' : 'right'} data-dim={b.comingSoon || view.locked || undefined}>
                           <BrandAvatar size={96} state={n.active ? 'speaking' : 'idle'} decorative />
                         </li>
                       )}

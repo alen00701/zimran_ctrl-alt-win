@@ -121,7 +121,9 @@ export function FeedPage() {
   const state = useGuestState();
   const { preferences } = state;
   const interestsKey = preferences.interests.join('|');
-  const ranked = useMemo(() => rankStreamStories(preferences.interests), [preferences.interests]);
+  // A fresh seed per visit: the videos and photos are mixed differently each time the feed is opened.
+  const [seed] = useState(() => Math.floor(Math.random() * 2 ** 31));
+  const ranked = useMemo(() => rankStreamStories(preferences.interests, seed), [preferences.interests, seed]);
   const [mode, setMode] = useState<'all' | 'videos'>('all');
   const posts = useMemo(() => mode === 'videos' ? ranked.filter(p => storyMedia[p.id]?.video) : ranked, [ranked, mode]);
   const [batchCount, setBatchCount] = useState(2);

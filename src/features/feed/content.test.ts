@@ -25,6 +25,10 @@ describe('edition selection', () => {
   });
   it('opens the stream with Yamal for every interest set and has a video for every local post', () => {
     for (const interests of [[], ['tactics'], ['transfers', 'rules']] as const) expect(rankStreamStories([...interests])[0]?.id).toBe('yamal-clip');
+    const order = rankStreamStories([], 7).slice(1);
+    expect(order.some((post, i) => i > 0 && !!post.local !== !!order[i - 1]!.local)).toBe(true);
+    expect(rankStreamStories([], 7).map(p => p.id)).toEqual(rankStreamStories([], 7).map(p => p.id));
+    expect(new Set([1, 2, 3, 4, 5].map(seed => rankStreamStories([], seed).map(p => p.id).join())).size).toBeGreaterThan(1);
     for (const post of streamStories.filter(p => p.local)) expect(storyMedia[post.id]?.video).toBeTruthy();
   });
   it('allows publishing only from verified-source staff, never the AI assistant', () => {

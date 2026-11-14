@@ -1,6 +1,6 @@
 .shell {
   min-height: 100dvh;
-  background: var(--color-bg);
+  background: transparent;
 }
 .skip {
   position: absolute;

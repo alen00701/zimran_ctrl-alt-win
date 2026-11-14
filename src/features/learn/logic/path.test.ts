@@ -82,16 +82,35 @@ describe('path state', () => {
     expect(n.filter((x) => x.kind === 'lesson').every((x) => x.state === 'locked-rules')).toBe(true);
   });
 
-  it('never locks Intermediate or Advanced, even for newcomers', () => {
-    for (const expertise of ['new', null] as const) {
+  it('locks levels above the one the visitor picked, but keeps the first lesson of every block open', () => {
+    const cases = [['new', [false, true, true]], [null, [false, true, true]], ['familiar', [false, false, true]], ['expert', [false, false, false]]] as const;
+    for (const [expertise, locked] of cases) {
       const lv = path(course(), expertise);
-      for (const i of [1, 2]) {
-        const n = nodes(lv, i).filter((x) => x.kind !== 'soon');
-        expect(n.length).toBeGreaterThan(0);
-        expect(n.every((x) => x.state === 'open' || x.state === 'in-progress'), `${lv[i]!.level.id} ${expertise}`).toBe(true);
-        expect(n.filter((x) => x.active)).toHaveLength(1);
-      }
+      expect(lv.map((l) => l.locked), String(expertise)).toEqual(locked);
+      lv.forEach((l, i) => {
+        if (!locked[i]) return;
+        for (const b of l.blocks.slice(0, 3)) {
+          const [first, ...rest] = b.nodes;
+          expect(first!.state, `${l.level.id}/${b.block.id}`).toBe('open');
+          expect(rest.filter((n) => n.kind !== 'soon').every((n) => n.state === 'locked-level')).toBe(true);
+        }
+        expect(l.blocks.flatMap((b) => b.nodes).filter((n) => n.active)).toHaveLength(0);
+      });
     }
+  });
+
+  it('opens the next level once the previous one is finished', () => {
+    const beginnerDone = Object.fromEntries(ALL_DRILLS.filter((d) => LEVELS[0]!.blocks.some((b) => b.nodes.some((n) => n.id === d.id))).map((d) => [`drill:${d.id}`, true]));
+    const answers = { ...beginnerDone, quiz: { best: 9, last: 9, attempts: 1, passed: true } };
+    const lessonIds = LEVELS[0]!.blocks.flatMap((b) => b.nodes.filter((n) => n.kind === 'lesson').map((n) => n.id));
+    // Non-rules drills live in their own block records.
+    const lessons = rulesRecord(answers) as unknown as Record<string, never>;
+    for (const b of LEVELS[0]!.blocks.slice(1)) {
+      lessons[b.id] = { lessonId: b.id, title: b.title, currentStep: 0, answers: Object.fromEntries(b.nodes.filter((n) => n.kind === 'drill').map((n) => [`drill:${n.id}`, true])), startedAt: 'x', updatedAt: 'x', completedAt: null } as never;
+    }
+    const lv = path(course({ lessons, completedLessonIds: lessonIds }), 'new');
+    expect(lv[0]!.done).toBe(lv[0]!.total);
+    expect(lv.map((l) => l.locked)).toEqual([false, false, true]);
   });
 
   it('drills unlock one by one and the quiz opens after all ten', () => {
@@ -129,9 +148,9 @@ describe('path state', () => {
     expect(n.filter((x) => x.state === 'locked-members')).toHaveLength(0);
   });
 
-  it('marks exactly one active node per level', () => {
-    const lv = path(course({ lessons: rulesRecord(passed) }), 'new');
-    for (const l of lv) expect(l.blocks.flatMap((b) => b.nodes).filter((n) => n.active)).toHaveLength(1);
+  it('marks exactly one active node per open level and none on a locked one', () => {
+    const lv = path(course({ lessons: rulesRecord(passed) }), 'familiar');
+    expect(lv.map((l) => l.blocks.flatMap((b) => b.nodes).filter((n) => n.active).length)).toEqual([1, 1, 0]);
   });
 
   it('scores a quiz run', () => {

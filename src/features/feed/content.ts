@@ -143,13 +143,51 @@ export const rankStories = (interests: InterestId[]) => [...stories].sort((a, b)
 /** The post that always opens the stream, whatever the reader's interests. */
 export const PINNED_FIRST_POST_ID = 'yamal-clip';
 const interestScore = (post: FeedPost, interests: InterestId[]) => post.tags.filter(tag => interests.some(interest => interest === tag)).length;
-export const rankStreamStories = (interests: InterestId[]) =>
-  streamStories.filter(post => post.local || isVerifiedPublisherPost(post)).sort((a, b) =>
-    Number(b.id === PINNED_FIRST_POST_ID) - Number(a.id === PINNED_FIRST_POST_ID) ||
-    interestScore(b, interests) - interestScore(a, interests) ||
-    // Team videos lead the photo stories; each group keeps catalogue order.
-    Number(!!b.local) - Number(!!a.local) ||
-    streamStories.indexOf(a) - streamStories.indexOf(b));
+/** Small seeded PRNG (mulberry32): the same seed gives the same shuffle, so it is testable. */
+function random(seed: number) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffle<T>(items: T[], rand: () => number) {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
+/** Shuffles videos and photo stories separately, then alternates them so the two kinds are mixed. */
+function mixed(posts: FeedPost[], rand: () => number) {
+  const videos = shuffle(posts.filter(post => post.local), rand);
+  const photos = shuffle(posts.filter(post => !post.local), rand);
+  const out: FeedPost[] = [];
+  while (videos.length || photos.length) {
+    if (videos.length) out.push(videos.shift()!);
+    if (photos.length) out.push(photos.shift()!);
+  }
+  return out;
+}
+/**
+ * Yamal first; then the reader's interests decide the tier; inside each tier videos and photos are
+ * shuffled and alternated. Pass a new `seed` (for example once per visit) to get a new order.
+ */
+export const rankStreamStories = (interests: InterestId[], seed = 1) => {
+  const rand = random(seed);
+  const eligible = streamStories.filter(post => post.local || isVerifiedPublisherPost(post));
+  const pinned = eligible.filter(post => post.id === PINNED_FIRST_POST_ID);
+  const tiers = new Map<number, FeedPost[]>();
+  for (const post of eligible.filter(post => post.id !== PINNED_FIRST_POST_ID)) {
+    const score = interestScore(post, interests);
+    tiers.set(score, [...(tiers.get(score) ?? []), post]);
+  }
+  const ordered = [...tiers.keys()].sort((a, b) => b - a).flatMap(score => mixed(tiers.get(score)!, rand));
+  return [...pinned, ...ordered];
+};
 export function quizStory(feed: FeedState) {
   const read = Object.values(feed.views).filter(view => stories.some(post => post.id === view.postId));
   if (read.length < 2) return undefined;

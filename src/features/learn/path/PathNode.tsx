@@ -12,6 +12,7 @@ const STATE_LABEL: Record<ViewNode['state'], string> = {
   'in-progress': 'in progress',
   'locked-order': 'locked',
   'locked-rules': 'locked until Rules basics is passed',
+  'locked-level': 'locked until this level is unlocked',
   'locked-members': 'members only',
   soon: 'coming soon',
 };
