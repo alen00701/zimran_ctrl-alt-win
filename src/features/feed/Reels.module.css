@@ -81,3 +81,12 @@
 }
 
 .soundHint { position: absolute; top: var(--space-16); right: var(--space-5); z-index: 3; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: 0 var(--space-3); border: var(--border-width) solid color-mix(in srgb, var(--color-text-on-inverse) 45%, transparent); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-surface-inverse) 65%, transparent); color: var(--color-text-on-inverse); font-size: var(--text-sm); font-weight: var(--weight-bold); cursor: pointer; }
+
+/* Tap anywhere on the video to pause or resume. Captions and buttons sit above this layer. */
+.tapLayer { position: absolute; inset: 0; z-index: 0; border: 0; padding: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pausedMark { position: absolute; top: 45%; left: 50%; z-index: 1; display: grid; place-items: center; width: 84px; height: 84px; transform: translate(-50%, -50%); border-radius: 50%; background: color-mix(in srgb, var(--color-surface-inverse) 55%, transparent); color: var(--color-text-on-inverse); pointer-events: none; }
+.pausedMark svg { width: 40px; height: 40px; stroke-width: 2.6; }
+@media (prefers-reduced-motion: no-preference) { .pausedMark { animation: pausedPop 160ms var(--ease-out); } }
+@keyframes pausedPop { from { opacity: 0; transform: translate(-50%, -50%) scale(.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+.caption, .actions { pointer-events: none; }
+.caption a, .caption button, .actions button { pointer-events: auto; }

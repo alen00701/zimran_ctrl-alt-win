@@ -102,12 +102,13 @@ function Reel({ post, active, near, open, index, total }: { post: FeedPost; acti
   };
   return <article className={styles.reel} aria-label={`${index + 1} of ${total}: ${post.title}`}>
     {media.video
-      ? <video ref={video} className={styles.video} src={media.video} loop playsInline preload={active ? 'auto' : near ? 'metadata' : 'none'} aria-label={media.alt} onClick={toggle} />
+      ? <video ref={video} className={styles.video} src={media.video} loop playsInline preload={active ? 'auto' : near ? 'metadata' : 'none'} aria-label={media.alt} />
       : <img className={styles.photo} src={media.image} alt={media.alt} style={{ objectPosition: media.position }} loading={index < 2 ? 'eager' : 'lazy'} />}
     <div className={styles.shade} />
     <div className={styles.mediaLabel}>{media.video ? '▶ Video' : '▧ Photo story'} · {post.category}</div>
     {media.video && silenced && !paused && <button type="button" className={styles.soundHint} onClick={toggleSound}><Icon name="sound" /> Tap for sound</button>}
-    {media.video && paused && <div className={styles.videoPrompt}><Button variant="inverse" onClick={toggle} aria-label={`Play video: ${post.title}`}><Icon name="play" /> Play video</Button></div>}
+    {media.video && <button type="button" className={styles.tapLayer} onClick={toggle} aria-label={paused ? `Play video: ${post.title}` : `Pause video: ${post.title}`} />}
+    {media.video && paused && <span className={styles.pausedMark} aria-hidden="true"><Icon name="pause" /></span>}
     <div className={styles.actions}>
       <div className={styles.avatar}><BrandAvatar size="sm" decorative /></div>
       {media.video && <Button variant="ghost" className={styles.action} onClick={toggle} aria-label={paused ? 'Play video' : 'Pause video'}><Icon name={paused ? 'play' : 'pause'} /><span>{paused ? 'Play' : 'Pause'}</span></Button>}
