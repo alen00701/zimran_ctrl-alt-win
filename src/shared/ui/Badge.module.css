@@ -1,0 +1,20 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.brand { background: var(--color-accent); color: var(--color-text-on-brand); }
+.neutral { background: var(--color-bg-subtle); color: var(--color-text-muted); }
+.inverse { background: var(--color-surface-inverse); color: var(--color-text-on-inverse); }
+.success { background: var(--color-success-subtle); color: var(--color-success); }
+.danger { background: var(--color-danger-subtle); color: var(--color-danger); }
+.sponsored { background: var(--color-sponsored-subtle); color: var(--color-sponsored); }
+.demo { background: var(--color-accent-subtle); color: var(--color-text-brand); }
+.reconstruction { background: var(--color-surface-inverse); color: var(--color-text-on-inverse); }

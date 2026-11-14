@@ -1,0 +1,8 @@
+.card {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+}
+.default { background: var(--color-surface); border: var(--border-width) solid var(--color-border); }
+.subtle { background: var(--color-bg-subtle); }
+.inverse { background: var(--color-surface-inverse); color: var(--color-text-on-inverse); }
+.brand { background: var(--color-surface-brand); color: var(--color-text-on-brand); }

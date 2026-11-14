@@ -1,0 +1,37 @@
+.root {
+  display: inline-block;
+  flex: none;
+  line-height: 0;
+}
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .root[data-state='speaking'] .img,
+  .root[data-state='thinking'] .img {
+    animation: bob 2.4s var(--ease-out) infinite;
+  }
+  .root[data-state='celebrate'] .img,
+  .root[data-state='correct'] .img {
+    animation: hop 600ms var(--ease-out) 2;
+  }
+  .root[data-state='incorrect'] .img {
+    animation: shake 360ms ease-in-out 1;
+  }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-10%) scale(1.03); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4%); }
+  75% { transform: translateX(4%); }
+}

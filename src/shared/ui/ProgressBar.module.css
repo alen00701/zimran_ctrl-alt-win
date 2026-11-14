@@ -1,0 +1,22 @@
+.track {
+  flex: 1;
+  height: 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  overflow: hidden;
+}
+.fill {
+  position: relative;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transition: width 400ms var(--ease-out);
+}
+.fill::after {
+  content: '';
+  position: absolute;
+  inset: 4px 8px auto 8px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.3);
+}

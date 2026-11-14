@@ -1,0 +1,12 @@
+.list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.item {
+  display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text); font-weight: var(--weight-bold); text-decoration: none;
+}
+.item:hover { background: var(--color-bg-subtle); }
+.prompt { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-6); }
+.prompt p { margin: 0; font-weight: var(--weight-bold); }
+.stack { display: grid; gap: var(--space-5); justify-items: start; }

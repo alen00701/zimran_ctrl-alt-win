@@ -1,0 +1,129 @@
+/*
+ * Read the Game — design tokens.
+ * Source of color: docs/references/palette-what-we-value.png (exact sampled values).
+ * Values marked INFERRED are not in the palette document; they are derived for UI states.
+ * Feature code uses the SEMANTIC tokens (--color-*, --space-*, --radius-*, --text-*),
+ * never the raw --rtg-palette-* values or hex literals.
+ */
+:root {
+  /* ---- Palette: exact values from the palette document ---- */
+  --rtg-palette-purple: #5744d4; /* page background, brand accent, purple text on white */
+  --rtg-palette-purple-deep: #4b32b2; /* diagonal bands; used for pressed states and button lips */
+  --rtg-palette-black: #000000; /* value cards */
+  --rtg-palette-white: #ffffff; /* value card, text on black */
+  --rtg-palette-paper: #f2f2f2; /* headline on purple */
+  --rtg-palette-graphite: #262626; /* icon on black card */
+  --rtg-palette-mist: #e1e2ec; /* icon on white card */
+
+  /* ---- INFERRED supporting values (not in the palette document) ---- */
+  --rtg-palette-purple-tint: #efedfb; /* 10% purple on white: selected option fill */
+  --rtg-palette-mist-strong: #c9cadb; /* stronger border derived from mist */
+  --rtg-palette-slate: #5c5d6b; /* secondary text, 6.5:1 on white */
+  --rtg-palette-slate-light: #8a8b99; /* disabled text */
+  --rtg-palette-green: #0d7340; /* success, AA on white and on its tint */
+  --rtg-palette-green-tint: #e3f5ea;
+  --rtg-palette-red: #c62f3b; /* error, 5.4:1 on white, 4.5:1 on its tint */
+  --rtg-palette-red-tint: #fbe6e8;
+  --rtg-palette-red-deep: #8f1f29;
+  --rtg-palette-amber: #8a5a00; /* sponsored label text, 5.4:1 on its tint */
+  --rtg-palette-amber-tint: #fff3d6;
+
+  /* ---- Semantic: backgrounds & surfaces ---- */
+  --color-bg: var(--rtg-palette-white);
+  --color-bg-subtle: var(--rtg-palette-paper);
+  --color-bg-brand: var(--rtg-palette-purple);
+  --color-surface: var(--rtg-palette-white);
+  --color-surface-inverse: var(--rtg-palette-black);
+  --color-surface-brand: var(--rtg-palette-purple);
+  --color-surface-selected: var(--rtg-palette-purple-tint);
+
+  /* ---- Semantic: text ---- */
+  --color-text: var(--rtg-palette-black);
+  --color-text-muted: var(--rtg-palette-slate);
+  --color-text-disabled: var(--rtg-palette-slate-light);
+  --color-text-brand: var(--rtg-palette-purple);
+  --color-text-on-brand: var(--rtg-palette-white);
+  --color-text-on-inverse: var(--rtg-palette-white);
+  --color-text-on-brand-soft: var(--rtg-palette-paper);
+
+  /* ---- Semantic: accents ---- */
+  --color-accent: var(--rtg-palette-purple);
+  --color-accent-pressed: var(--rtg-palette-purple-deep);
+  --color-accent-subtle: var(--rtg-palette-purple-tint);
+  --color-decor-on-inverse: var(--rtg-palette-graphite); /* large glyphs on black cards */
+  --color-decor-on-light: var(--rtg-palette-mist); /* large glyphs on white cards */
+
+  /* ---- Semantic: borders ---- */
+  --color-border: var(--rtg-palette-mist);
+  --color-border-strong: var(--rtg-palette-mist-strong);
+  --color-border-selected: var(--rtg-palette-purple);
+  --color-focus-ring: var(--rtg-palette-purple);
+
+  /* ---- Semantic: feedback ---- */
+  --color-success: var(--rtg-palette-green);
+  --color-success-subtle: var(--rtg-palette-green-tint);
+  --color-danger: var(--rtg-palette-red);
+  --color-danger-subtle: var(--rtg-palette-red-tint);
+  --color-danger-pressed: var(--rtg-palette-red-deep);
+  --color-sponsored: var(--rtg-palette-amber);
+  --color-sponsored-subtle: var(--rtg-palette-amber-tint);
+  --color-disabled-bg: var(--rtg-palette-mist);
+
+  /* ---- Spacing (4px grid) ---- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Typography (font is INFERRED: Figtree, a free geometric grotesk close to the palette headline) ---- */
+  --font-sans: 'Figtree Variable', 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.875rem; /* 14 */
+  --text-md: 1rem; /* 16 */
+  --text-lg: 1.125rem; /* 18 */
+  --text-xl: 1.375rem; /* 22 */
+  --text-2xl: 1.75rem; /* 28 */
+  --text-3xl: 2.25rem; /* 36 */
+  --text-display: clamp(2.5rem, 6vw, 4rem);
+  --weight-regular: 450;
+  --weight-medium: 550;
+  --weight-bold: 700;
+  --weight-heavy: 800;
+  --leading-tight: 1.1;
+  --leading-snug: 1.3;
+  --leading-body: 1.5;
+  --tracking-display: -0.025em;
+
+  /* ---- Radii (INFERRED from the Duolingo reference composition) ---- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --radius-none: 0; /* palette-style editorial cards are square */
+
+  /* ---- Elevation: Duolingo-style bottom "lip" instead of soft shadows ---- */
+  --lip-size: 4px;
+  --border-width: 2px;
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.16);
+
+  /* ---- Layout ---- */
+  --layout-max: 1120px;
+  --layout-content: 680px;
+  --layout-gutter: var(--space-4);
+  --nav-height: 64px;
+  --rail-width: 232px;
+  --tap-min: 44px;
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+}
