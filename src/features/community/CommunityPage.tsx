@@ -4,24 +4,22 @@ import type { GuestState } from '@/shared/contracts/types';
 import { BrandAvatar } from '@/shared/brand';
 import { communityActions, goingEventIds, isGoing, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
-import { Badge, Button, ButtonLink, Card, usePageTitle } from '@/shared/ui';
-import { DEMO_LOCATION, EVENT_KINDS, eventsOfKind, findEvent, type CommunityEvent, type EventKind } from './content';
+import { Badge, Button, Card, usePageTitle } from '@/shared/ui';
+import { DEMO_LOCATION, EVENT_KINDS, EVENTS, findEvent, type CommunityEvent } from './content';
 import { countdownLabel, eventShortDateLabel, eventTimeLabel } from './format';
 import { DEMO_FRIENDS, friendsGoingLabel, initials } from './friends';
-import { distanceLabel, milesBetween, sortByDistance, useViewerLocation, } from './geo';
+import { distanceLabel, milesBetween, useViewerLocation } from './geo';
 import { LEAGUE_NAME, buildLeagueBoard, timeLeftLabel, useNow } from './leaderboard';
 import { VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
-const SECTION_ORDER: EventKind[] = ['watch-party', 'play-day'];
 
-/** /community: friends, the nearest matchday and play day, and the weekly Silver League. */
+/** /community: this week's two events with an "I'm going" check, friends, and the weekly Silver League. */
 export function CommunityPage() {
   const state = useGuestState();
   const viewer = useViewerLocation();
   const [params, setParams] = useSearchParams();
   const showFriends = params.get('view') === 'friends';
-  const from = viewer.coords ?? DEMO_LOCATION.coords;
 
   const toggleFriends = () =>
     setParams(
@@ -64,20 +62,7 @@ export function CommunityPage() {
       <div className={styles.stack}>
         {showFriends && <FriendsPanel state={state} onClose={toggleFriends} />}
 
-        {SECTION_ORDER.map((kind) => {
-          const [featured, ...others] = sortByDistance(eventsOfKind(kind), from);
-          if (!featured) return null;
-          return (
-            <section key={kind} aria-labelledby={`section-${kind}`} className={styles.section}>
-              <EventCard event={featured} going={isGoing(state, featured.id)} viewer={viewer} />
-              {others.map((e) => (
-                <Link key={e.id} to={routes.event(e.id)} className={styles.moreEvent}>
-                  {e.title} · {eventShortDateLabel(e.startsAt, e.timeZone)} · {e.venue.name}
-                </Link>
-              ))}
-            </section>
-          );
-        })}
+        <WeekList state={state} viewer={viewer} />
 
         <LeagueCard board={board} now={now} />
       </div>
@@ -173,63 +158,72 @@ function LocationLine({ event, viewer }: { event: CommunityEvent; viewer: Return
   );
 }
 
-function EventCard({ event, going, viewer }: { event: CommunityEvent; going: boolean; viewer: ReturnType<typeof useViewerLocation> }) {
+/** This week's events as a checklist. Only events with the box checked show up in Account. */
+function WeekList({ state, viewer }: { state: GuestState; viewer: ReturnType<typeof useViewerLocation> }) {
+  const events = [...EVENTS].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const checked = events.filter((e) => isGoing(state, e.id)).length;
+  return (
+    <section aria-labelledby="week-title" className={styles.week}>
+      <header className={styles.weekHead}>
+        <div>
+          <h2 id="week-title" className={styles.weekTitle}>This week</h2>
+          <p className={styles.muted}>{events.length} events near {DEMO_LOCATION.label}. Check the ones you’re going to.</p>
+        </div>
+        <BrandAvatar size={72} state={checked ? 'celebrate' : 'speaking'} decorative className={styles.weekAvatar} />
+      </header>
+      <ul className={styles.weekList}>
+        {events.map((e) => <EventRow key={e.id} event={e} going={isGoing(state, e.id)} viewer={viewer} />)}
+      </ul>
+      <p className={styles.weekNote} role="status">
+        {checked === 0 ? 'Nothing checked yet. Checked events appear in your Account.' : `${checked} of ${events.length} checked. `}
+        {checked > 0 && <Link to={routes.account()}>See them in Account →</Link>}
+      </p>
+    </section>
+  );
+}
+
+function EventRow({ event, going, viewer }: { event: CommunityEvent; going: boolean; viewer: ReturnType<typeof useViewerLocation> }) {
   const kind = EVENT_KINDS[event.kind];
   const countdown = countdownLabel(event.startsAt, event.timeZone);
   const friends = friendsGoingLabel(event.id);
   const to = routes.event(event.id);
+  const boxId = `going-${event.id}`;
   return (
-    <article className={styles.featured} data-kind={event.kind} data-tone={event.kind === 'play-day' ? 'green' : 'purple'}>
-      <Link to={to} className={styles.featuredMedia} tabIndex={-1} aria-hidden="true">
+    <li className={styles.eventRow} data-going={going || undefined} data-tone={event.kind === 'play-day' ? 'green' : 'purple'}>
+      <Link to={to} className={styles.rowMedia} tabIndex={-1} aria-hidden="true">
         <VenuePhoto photo={event.photo} />
-        <span className={styles.mediaNote}>Sample photo</span>
       </Link>
-      <BrandAvatar size={88} state={event.kind === 'play-day' ? 'idle' : 'celebrate'} decorative className={styles.cardAvatar} />
-      <div className={styles.featuredBody}>
+      <div className={styles.rowBody}>
         <div className={styles.cardTop}>
-          <h2 id={`section-${event.kind}`} className={styles.kicker}>
-            <span aria-hidden="true">{kind.icon}</span> {kind.label}
-          </h2>
+          <p className={styles.kicker}><span aria-hidden="true">{kind.icon}</span> {kind.label}</p>
           <span className={styles.badges}>
             <Badge variant="demo">Demo event</Badge>
             {event.venue.sponsored && <Badge variant="sponsored">Sponsored venue</Badge>}
           </span>
         </div>
-        <h3 className={styles.featuredTitle}>
-          <Link to={to}>{event.title}</Link>
-        </h3>
-        <div className={styles.cardLines}>
-          <p className={styles.cardLine}>
-            <span aria-hidden="true">🗓 </span>
-            {countdown ? `${countdown} · ` : ''}
-            {eventShortDateLabel(event.startsAt, event.timeZone)} · {eventTimeLabel(event.startsAt, event.timeZone)} ·{' '}
-            <strong>{event.priceLabel}</strong>
-          </p>
-          <LocationLine event={event} viewer={viewer} />
-          {friends && (
-            <p className={styles.cardLine}>
-              <span aria-hidden="true">👥 </span>
-              {friends}
-            </p>
-          )}
-        </div>
-        <div className={styles.cardActions}>
-          {going ? (
-            <>
-              <Badge variant="success">You’re going</Badge>
-              <ButtonLink to={to} variant="secondary">View your RSVP</ButtonLink>
-            </>
-          ) : (
-            <>
-              <Button variant={event.kind === 'play-day' ? 'inverse' : 'primary'} onClick={() => communityActions.rsvp(event.id)}>
-                I’m going
-              </Button>
-              <Link to={to} className={styles.detailsLink}>Details</Link>
-            </>
-          )}
+        <h3 className={styles.rowTitle}><Link to={to}>{event.title}</Link></h3>
+        <p className={styles.cardLine}>
+          <span aria-hidden="true">🗓 </span>
+          {countdown ? <strong>{countdown}</strong> : null}{countdown ? ' · ' : ''}
+          {eventShortDateLabel(event.startsAt, event.timeZone)} · {eventTimeLabel(event.startsAt, event.timeZone)} · <strong>{event.priceLabel}</strong>
+        </p>
+        <LocationLine event={event} viewer={viewer} />
+        {friends && <p className={styles.cardLine}><span aria-hidden="true">👥 </span>{friends}</p>}
+        <div className={styles.rowFoot}>
+          <label className={styles.goingBox} htmlFor={boxId}>
+            <input
+              id={boxId}
+              type="checkbox"
+              checked={going}
+              onChange={(e) => (e.target.checked ? communityActions.rsvp(event.id) : communityActions.cancelRsvp(event.id))}
+            />
+            <span className={styles.goingMark} aria-hidden="true">✓</span>
+            <span className={styles.goingText}>{going ? 'I’m going' : 'Going?'}</span>
+          </label>
+          <Link to={to} className={styles.detailsLink}>Details</Link>
         </div>
       </div>
-    </article>
+    </li>
   );
 }
 

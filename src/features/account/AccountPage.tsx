@@ -31,6 +31,9 @@ function achievements(s: GuestState, points: number, going: number, groups: numb
   ];
 }
 
+const whenLabel = (iso: string, tz: string) =>
+  `${new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: tz })}, ${new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz })}`;
+
 function Section({ tone, avatar, title, children, id }: { tone: Tone; avatar?: BrandAvatarState; title: string; children: ReactNode; id: string }) {
   return (
     <section className={styles.section} data-tone={tone} aria-labelledby={id}>
@@ -144,10 +147,16 @@ export function AccountPage() {
             {groups.map((id) => (
               <li key={id}><span aria-hidden="true">🤝</span> <Link to={routes.community()}>{DEMO_GROUPS.find((g) => g.id === id)?.name ?? id}</Link></li>
             ))}
-            {going.map((id) => (
-              <li key={id}><span aria-hidden="true">🎟️</span> <Link to={routes.event(id)}>{DEMO_EVENTS.find((e) => e.id === id)?.title ?? id}</Link> · going</li>
-            ))}
-            {groups.length + going.length === 0 && <li className={styles.muted}>Nothing yet. Join a group or RSVP to an event in Community.</li>}
+            {going.map((id) => {
+              const e = DEMO_EVENTS.find((x) => x.id === id);
+              return (
+                <li key={id}>
+                  <span aria-hidden="true">🎟️</span> <Link to={routes.event(id)}>{e?.title ?? id}</Link> · going
+                  {e && <span className={styles.muted}> · {whenLabel(e.startsAt, e.timeZone)} · {e.venueName}</span>}
+                </li>
+              );
+            })}
+            {groups.length + going.length === 0 && <li className={styles.muted}>Nothing yet. Check “I’m going” on an event in Community and it shows up here.</li>}
           </ul>
           <ButtonLink to={routes.community()} variant="secondary">Open Community</ButtonLink>
         </Section>

@@ -5,7 +5,7 @@
  * Everything here is a demo: the group, the bar and the field are fictional. The app makes no
  * claim of a club, league, venue or media partnership.
  */
-import { DEMO_EVENT, DEMO_GROUP, SEED_POSTS } from '@/shared/fixtures/ids';
+import { DEMO_EVENT, DEMO_GROUP, DEMO_PLAY_DAY, SEED_POSTS } from '@/shared/fixtures/ids';
 import venueBarUrl from './assets/venue-bar.jpg';
 import fieldPlayUrl from './assets/field-play.jpg';
 
@@ -92,7 +92,7 @@ export const GROUP: CommunityGroup = {
 };
 
 /** Community-local ID (not a shared fixture). Account shows its title only if it reads Community content. */
-export const PLAY_DAY_ID = 'play-day-orlando-pickup-2026-11-21';
+export const PLAY_DAY_ID = DEMO_PLAY_DAY.id;
 
 export const WATCH_PARTY: WatchPartyEvent = {
   id: DEMO_EVENT.id,
@@ -136,9 +136,9 @@ export const WATCH_PARTY: WatchPartyEvent = {
 export const PLAY_DAY: PlayDayEvent = {
   id: PLAY_DAY_ID,
   kind: 'play-day',
-  title: 'Play day: 5v5 pickup at Riverside Fields',
-  startsAt: '2026-11-21T10:00:00-05:00',
-  timeZone: 'America/New_York',
+  title: DEMO_PLAY_DAY.title,
+  startsAt: DEMO_PLAY_DAY.startsAt,
+  timeZone: DEMO_PLAY_DAY.timeZone,
   game: {
     format: '5v5 small-sided games, rotating teams every 10 minutes',
     level: 'All levels. Beginners welcome, no tackling.',

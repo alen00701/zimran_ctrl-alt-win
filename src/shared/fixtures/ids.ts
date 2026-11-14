@@ -76,7 +76,18 @@ export const DEMO_EVENT = {
   isDemo: true,
 } as const;
 
-export const DEMO_EVENTS = [DEMO_EVENT] as const;
+/** Community-local play day, shared so Account can show it once the visitor checks "I'm going". */
+export const DEMO_PLAY_DAY = {
+  id: 'play-day-orlando-pickup-2026-11-21',
+  title: 'Play day: 5v5 pickup at Riverside Fields',
+  startsAt: '2026-11-21T10:00:00-05:00',
+  timeZone: 'America/New_York',
+  venueName: 'Riverside Community Fields',
+  city: 'Orlando, FL',
+  isDemo: true,
+} as const;
+
+export const DEMO_EVENTS = [DEMO_EVENT, DEMO_PLAY_DAY] as const;
 export const DEMO_GROUPS = [DEMO_GROUP] as const;
 
 /** Quiz shown after two distinct stories. Feed owns the question content. */
