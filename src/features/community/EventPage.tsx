@@ -2,9 +2,10 @@ import { Link, useParams } from 'react-router';
 import { communityActions, isMember, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { Badge, Button, ButtonLink, Card, CoachPrompt, PageHeader, usePageTitle } from '@/shared/ui';
-import { GROUP, findEvent, type CommunityEvent } from './content';
+import { EVENT_KINDS, GROUP, findEvent, type CommunityEvent } from './content';
 import { countdownLabel, eventDateLabel, eventTimeLabel, viewerTimeLabel } from './format';
 import { EventChat } from './EventChat';
+import { friendsGoingLabel } from './friends';
 import { VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
@@ -20,7 +21,7 @@ function EventNotFound() {
   return (
     <div className={styles.stack}>
       <CoachPrompt headingLevel={1} state="thinking">We couldn’t find that event. It may have moved.</CoachPrompt>
-      <ButtonLink to={routes.community()}>See upcoming watch parties</ButtonLink>
+      <ButtonLink to={routes.community()}>See upcoming events</ButtonLink>
     </div>
   );
 }
@@ -32,6 +33,8 @@ function EventDetails({ event }: { event: CommunityEvent }) {
   const member = isMember(state, event.organizer.groupId);
   const countdown = countdownLabel(event.startsAt, event.timeZone);
   const yourTime = viewerTimeLabel(event.startsAt, event.timeZone);
+  const kind = EVENT_KINDS[event.kind];
+  const friends = friendsGoingLabel(event.id);
 
   return (
     <div className={styles.stack}>
@@ -40,8 +43,9 @@ function EventDetails({ event }: { event: CommunityEvent }) {
       <PageHeader
         eyebrow={
           <span className={styles.badges}>
+            <Badge variant="neutral">{kind.icon} {kind.label}</Badge>
             <Badge variant="demo">Demo event</Badge>
-            <Badge variant="sponsored">Sponsored venue</Badge>
+            {event.venue.sponsored && <Badge variant="sponsored">Sponsored venue</Badge>}
             {countdown && <Badge variant="neutral">{countdown}</Badge>}
           </span>
         }
@@ -50,14 +54,18 @@ function EventDetails({ event }: { event: CommunityEvent }) {
       />
 
       <figure className={styles.venueFigure}>
-        <VenuePhoto venueName={event.venue.name} />
+        <VenuePhoto photo={event.photo} />
         <figcaption>
           Sample photo · {event.venue.name} is a fictional venue
         </figcaption>
       </figure>
 
+      {event.kind === 'watch-party' ? (
       <Card variant="inverse" className={styles.matchCard}>
-        <p className={styles.matchLabel}>{event.match.competition}</p>
+        <p className={styles.matchLabel}>
+          <span aria-hidden="true">📺 </span>
+          {event.match.competition}
+        </p>
         <p className={styles.matchup}>
           <span>{event.match.home}</span>
           <span className={styles.vs}>vs</span>
@@ -72,6 +80,18 @@ function EventDetails({ event }: { event: CommunityEvent }) {
           . Check there for the official kickoff time.
         </p>
       </Card>
+      ) : (
+        <Card variant="inverse" className={styles.matchCard}>
+          <p className={styles.matchLabel}>
+            <span aria-hidden="true">⚽ </span>Pickup game · {event.game.spots} spots
+          </p>
+          <p className={styles.gameFormat}>{event.game.format}</p>
+          <p className={styles.matchSource}>{event.game.level}</p>
+          <p className={styles.matchSource}>
+            <strong>Bring:</strong> {event.game.bring.join(' · ')}
+          </p>
+        </Card>
+      )}
 
       <Card>
         <dl className={styles.facts}>
@@ -80,7 +100,7 @@ function EventDetails({ event }: { event: CommunityEvent }) {
             <dd>{eventDateLabel(event.startsAt, event.timeZone)}</dd>
           </div>
           <div>
-            <dt>Doors open</dt>
+            <dt>{kind.startLabel}</dt>
             <dd>
               {eventTimeLabel(event.startsAt, event.timeZone)} <span className={styles.muted}>(venue local time)</span>
               {yourTime && <span className={styles.subline}>Your time: {yourTime}</span>}
@@ -114,9 +134,17 @@ function EventDetails({ event }: { event: CommunityEvent }) {
           ) : rsvp === 'cancelled' ? (
             <CoachPrompt state="idle" avatarSize="sm">RSVP cancelled. Changed your mind? You can still come.</CoachPrompt>
           ) : (
-            <CoachPrompt state="speaking" avatarSize="sm">Coming to watch with us? Admission is free.</CoachPrompt>
+            <CoachPrompt state="speaking" avatarSize="sm">
+              {event.kind === 'play-day' ? 'Coming to play with us? It’s free.' : 'Coming to watch with us? Admission is free.'}
+            </CoachPrompt>
           )}
         </div>
+        {friends && (
+          <p className={styles.friendsGoing}>
+            <span aria-hidden="true">👥 </span>
+            {friends}
+          </p>
+        )}
         <div className={styles.actions}>
           {going ? (
             <>
@@ -129,7 +157,12 @@ function EventDetails({ event }: { event: CommunityEvent }) {
         </div>
       </section>
 
-      <EventChat eventId={event.id} timeZone={event.timeZone} going={going} />
+      <EventChat
+        eventId={event.id}
+        timeZone={event.timeZone}
+        going={going}
+        title={event.kind === 'play-day' ? 'Play day chat' : 'Matchday chat'}
+      />
 
       <Card>
         <h2 className={styles.h3}>The plan</h2>
@@ -141,9 +174,11 @@ function EventDetails({ event }: { event: CommunityEvent }) {
             </li>
           ))}
         </ol>
-        <Link to={routes.feedPost(event.previewPostId)} className={styles.inlineLink}>
-          Read the match preview in Feed →
-        </Link>
+        {event.kind === 'watch-party' && (
+          <Link to={routes.feedPost(event.previewPostId)} className={styles.inlineLink}>
+            Read the match preview in Feed →
+          </Link>
+        )}
       </Card>
 
       <Card className={styles.organizer}>
@@ -160,14 +195,19 @@ function EventDetails({ event }: { event: CommunityEvent }) {
 
       <Card variant="subtle" className={styles.disclosure}>
         <h2 className={styles.h3}>About this listing</h2>
-        <p>
-          <Badge variant="sponsored">Sponsored venue</Badge>{' '}
-          {event.venue.name} is a fictional venue created for this demo. In the Read the Game business model, venues pay
-          to feature their watch parties here. Admission stays free for fans.
-        </p>
+        {event.venue.sponsored ? (
+          <p>
+            <Badge variant="sponsored">Sponsored venue</Badge>{' '}
+            {event.venue.name} is a fictional venue created for this demo. In the Read the Game business model, venues
+            pay to feature their events here. Admission stays free for fans.
+          </p>
+        ) : (
+          <p>{event.venue.name} is a fictional field created for this demo. Playing is free.</p>
+        )}
         <p className={styles.muted}>
-          This is a demo event. Read the Game has no partnership with {event.match.home}, {event.match.away}, Major League
-          Soccer, any venue or any media company.
+          This is a demo event. Read the Game has no partnership with{' '}
+          {event.kind === 'watch-party' ? `${event.match.home}, ${event.match.away}, Major League Soccer, ` : ''}
+          any club, league, venue or media company.
         </p>
       </Card>
     </div>

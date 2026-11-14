@@ -2,18 +2,11 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { communityActions } from '@/shared/state';
 import { Badge, Button } from '@/shared/ui';
 import { CHAT_MAX_LENGTH, postMessage, useEventChat } from './chat';
+import { initials } from './friends';
 import styles from './Community.module.css';
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
 /** Chat for fans who are going. Everyone can read it; only fans who RSVP'd can post. */
-export function EventChat({ eventId, timeZone, going }: { eventId: string; timeZone: string; going: boolean }) {
+export function EventChat({ eventId, timeZone, going, title = 'Matchday chat' }: { eventId: string; timeZone: string; going: boolean; title?: string }) {
   const messages = useEventChat(eventId);
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLOListElement>(null);
@@ -36,7 +29,7 @@ export function EventChat({ eventId, timeZone, going }: { eventId: string; timeZ
   return (
     <section aria-labelledby="chat-title" className={styles.chat}>
       <div className={styles.chatHead}>
-        <h2 id="chat-title" className={styles.h3}>Matchday chat</h2>
+        <h2 id="chat-title" className={styles.h3}>{title}</h2>
         <span className={styles.badges}>
           <Badge variant="demo">Demo chat</Badge>
           <Badge variant="neutral">{fanCount} going</Badge>

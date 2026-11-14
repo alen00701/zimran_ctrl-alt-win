@@ -261,3 +261,52 @@
   background: var(--color-surface-selected);
 }
 .chatLocked p { margin: 0; font-weight: var(--weight-medium); }
+
+/* ---- section kicker, friends ---- */
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-brand);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-heavy);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.kicker span { font-size: var(--text-lg); letter-spacing: 0; }
+.featuredBody .locationRow { justify-content: flex-start; color: var(--color-text); font-weight: var(--weight-medium); }
+.friendsGoing { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-bold); }
+.gameFormat { margin: 0; font-size: var(--text-xl); font-weight: var(--weight-heavy); line-height: var(--leading-snug); }
+.countPill {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-text-on-brand);
+  font-size: var(--text-xs);
+}
+.friends { display: grid; gap: var(--space-4); }
+.friendsHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.friendList { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.friendRow { display: flex; align-items: flex-start; gap: var(--space-3); }
+.friendText { display: grid; gap: var(--space-1); min-width: 0; }
+.friendPlans { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.planChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.planChip[data-you] { border-color: var(--color-success); background: var(--color-success-subtle); color: var(--color-success); }
+.planChip:hover { border-color: var(--color-border-selected); background: var(--color-surface-selected); }

@@ -7,6 +7,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import { DEMO_EVENT } from '@/shared/fixtures/ids';
+import { PLAY_DAY_ID } from './content';
 
 export const CHAT_STORAGE_KEY = 'rtg.community.chat';
 const CHAT_VERSION = 1;
@@ -32,6 +33,14 @@ export const DEMO_CHAT: Record<string, ChatMessage[]> = {
     { id: 'd5', author: 'Orlando Matchday Regulars', role: 'host', at: '2026-11-13T09:40:00-05:00', text: 'Street parking fills up fast on matchdays. Rideshare is easiest.' },
     { id: 'd6', author: 'Sam K.', role: 'fan', at: '2026-11-13T20:02:00-05:00', text: 'Coming straight from work, could someone save me a stool? I’ll get there around 7:30.' },
     { id: 'd7', author: 'Maya R.', role: 'fan', at: '2026-11-14T08:47:00-05:00', text: 'Got you, Sam. Also: who’s brave enough to post a score prediction? 👀' },
+  ],
+  [PLAY_DAY_ID]: [
+    { id: 'p1', author: 'Orlando Matchday Regulars', role: 'host', at: '2026-11-13T12:10:00-05:00', text: 'Play day is on! Check-in at the north gate from 9:45. We bring bibs, balls and cones.' },
+    { id: 'p2', author: 'Sam K.', role: 'fan', at: '2026-11-13T12:42:00-05:00', text: 'Haven’t played since college 😅 Is it okay if I’m slow?' },
+    { id: 'p3', author: 'Maya R.', role: 'fan', at: '2026-11-13T13:05:00-05:00', text: 'Totally. It’s friendly 5v5, no tackling. Half of us are just there for the coffee after.' },
+    { id: 'p4', author: 'Sam K.', role: 'fan', at: '2026-11-13T13:20:00-05:00', text: 'Turf shoes or regular sneakers?' },
+    { id: 'p5', author: 'Orlando Matchday Regulars', role: 'host', at: '2026-11-13T13:31:00-05:00', text: 'Either works. Just no metal studs on the turf.' },
+    { id: 'p6', author: 'Maya R.', role: 'fan', at: '2026-11-14T09:15:00-05:00', text: 'Forecast says sunny and 72°F. Bring water! ☀️' },
   ],
 };
 

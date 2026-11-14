@@ -1,51 +1,66 @@
-import { Link } from 'react-router';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import type { GuestState } from '@/shared/contracts/types';
 import { communityActions, isGoing, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { Badge, Button, ButtonLink, Card, PageHeader } from '@/shared/ui';
-import { DEMO_LOCATION, EVENTS, type CommunityEvent } from './content';
+import { DEMO_LOCATION, EVENT_KINDS, eventsOfKind, findEvent, type CommunityEvent, type EventKind } from './content';
 import { countdownLabel, eventShortDateLabel, eventTimeLabel } from './format';
-import { distanceLabel, milesBetween, sortByDistance, useViewerLocation } from './geo';
+import { DEMO_FRIENDS, friendsGoingLabel, initials } from './friends';
+import { distanceLabel, milesBetween, sortByDistance, useViewerLocation, } from './geo';
 import { LEAGUE_NAME, buildLeagueBoard, timeLeftLabel, useNow } from './leaderboard';
 import { VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
-/** /community: the nearest matchday event first, then the weekly Silver League. */
+const SECTION_ORDER: EventKind[] = ['watch-party', 'play-day'];
+
+/** /community: friends, the nearest matchday and play day, then the weekly Silver League. */
 export function CommunityPage() {
   const state = useGuestState();
   const viewer = useViewerLocation();
-  const [featured, ...others] = sortByDistance(EVENTS, viewer.coords ?? DEMO_LOCATION.coords);
+  const [params, setParams] = useSearchParams();
+  const showFriends = params.get('view') === 'friends';
+  const from = viewer.coords ?? DEMO_LOCATION.coords;
+
+  const toggleFriends = () =>
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        if (showFriends) next.delete('view');
+        else next.set('view', 'friends');
+        return next;
+      },
+      { replace: true },
+    );
 
   return (
     <>
-      <PageHeader title="Community" subtitle="Matchday near you" />
+      <PageHeader
+        title="Community"
+        subtitle="Watch and play near you"
+        actions={
+          <Button variant="secondary" onClick={toggleFriends} aria-expanded={showFriends} aria-controls="friends-panel">
+            <span aria-hidden="true">👥</span> Friends <span className={styles.countPill}>{DEMO_FRIENDS.length}</span>
+          </Button>
+        }
+      />
       <div className={styles.stack}>
-        <section aria-labelledby="nearby-title" className={styles.section}>
-          <h2 id="nearby-title" className="visually-hidden">Nearest watch party</h2>
-          <p className={styles.locationRow}>
-            <span role="status">
-              <span aria-hidden="true">📍 </span>
-              {viewer.status === 'ready' && featured
-                ? `${distanceLabel(milesBetween(viewer.coords, featured.venue.coords))} · ${featured.venue.city}`
-                : viewer.status === 'locating'
-                  ? 'Finding you…'
-                  : viewer.status === 'unavailable'
-                    ? `Couldn’t get your location. Showing ${DEMO_LOCATION.label}.`
-                    : `Showing ${DEMO_LOCATION.label}`}
-            </span>
-            {viewer.status !== 'ready' && viewer.status !== 'locating' && (
-              <button type="button" className={styles.linkButton} onClick={viewer.request}>
-                {viewer.status === 'unavailable' ? 'Try again' : 'Use my location'}
-              </button>
-            )}
-          </p>
-          {featured && <FeaturedEvent event={featured} going={isGoing(state, featured.id)} />}
-          {others.map((e) => (
-            <Link key={e.id} to={routes.event(e.id)} className={styles.moreEvent}>
-              {e.title} · {eventTimeLabel(e.startsAt, e.timeZone)} · {e.venue.name}
-            </Link>
-          ))}
-        </section>
+        {showFriends && <FriendsPanel state={state} onClose={toggleFriends} />}
+
+        {SECTION_ORDER.map((kind) => {
+          const [featured, ...others] = sortByDistance(eventsOfKind(kind), from);
+          if (!featured) return null;
+          return (
+            <section key={kind} aria-labelledby={`section-${kind}`} className={styles.section}>
+              <EventCard event={featured} going={isGoing(state, featured.id)} viewer={viewer} />
+              {others.map((e) => (
+                <Link key={e.id} to={routes.event(e.id)} className={styles.moreEvent}>
+                  {e.title} · {eventShortDateLabel(e.startsAt, e.timeZone)} · {e.venue.name}
+                </Link>
+              ))}
+            </section>
+          );
+        })}
 
         <LeagueCard state={state} />
       </div>
@@ -53,19 +68,109 @@ export function CommunityPage() {
   );
 }
 
-function FeaturedEvent({ event, going }: { event: CommunityEvent; going: boolean }) {
+function FriendsPanel({ state, onClose }: { state: GuestState; onClose: () => void }) {
+  const [copy, setCopy] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const inviteUrl = typeof window === 'undefined' ? routes.community() : new URL(routes.community(), window.location.origin).href;
+  const invite = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopy('copied');
+    } catch {
+      setCopy('failed');
+    }
+  };
+  return (
+    <section id="friends-panel" aria-labelledby="friends-title">
+      <Card className={styles.friends}>
+        <div className={styles.friendsHead}>
+          <h2 id="friends-title" className={styles.boardTitle}>
+            <span aria-hidden="true">👥 </span>Friends
+          </h2>
+          <Badge variant="demo">Demo friends</Badge>
+        </div>
+        <ul className={styles.friendList}>
+          {DEMO_FRIENDS.map((f) => (
+            <li key={f.id} className={styles.friendRow}>
+              <span className={styles.msgAvatar} aria-hidden="true">{initials(f.name)}</span>
+              <span className={styles.friendText}>
+                <strong>{f.name}</strong>
+                <span className={styles.friendPlans}>
+                  {f.going.map((id) => {
+                    const e = findEvent(id);
+                    if (!e) return null;
+                    const k = EVENT_KINDS[e.kind];
+                    const youToo = isGoing(state, id);
+                    return (
+                      <Link key={id} to={routes.event(id)} className={styles.planChip} data-you={youToo || undefined}>
+                        <span aria-hidden="true">{k.icon}</span> {k.shortLabel} · {eventShortDateLabel(e.startsAt, e.timeZone)}
+                        {youToo && (
+                          <>
+                            <span aria-hidden="true"> ✓</span>
+                            <span className="visually-hidden"> (you’re going too)</span>
+                          </>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div className={styles.actions}>
+          <Button onClick={invite}>Invite a friend</Button>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+          <span role="status" className={styles.muted}>
+            {copy === 'copied' ? 'Link copied. Send it to a friend!' : copy === 'failed' ? `Copy this link: ${inviteUrl}` : ''}
+          </span>
+        </div>
+      </Card>
+    </section>
+  );
+}
+
+function LocationLine({ event, viewer }: { event: CommunityEvent; viewer: ReturnType<typeof useViewerLocation> }) {
+  const place = `${event.venue.name}, ${event.venue.area}`;
+  const text =
+    viewer.status === 'ready'
+      ? `${distanceLabel(milesBetween(viewer.coords, event.venue.coords))} · ${place}`
+      : viewer.status === 'locating'
+        ? `Finding you… · ${place}`
+        : `${place}, ${event.venue.city}`;
+  return (
+    <p className={styles.locationRow}>
+      <span>
+        <span aria-hidden="true">📍 </span>
+        {text}
+        {viewer.status === 'unavailable' && <span className={styles.subline}>Couldn’t get your location.</span>}
+      </span>
+      {viewer.status !== 'ready' && viewer.status !== 'locating' && (
+        <button type="button" className={styles.linkButton} onClick={viewer.request}>
+          {viewer.status === 'unavailable' ? 'Try again' : 'Use my location'}
+        </button>
+      )}
+    </p>
+  );
+}
+
+function EventCard({ event, going, viewer }: { event: CommunityEvent; going: boolean; viewer: ReturnType<typeof useViewerLocation> }) {
+  const kind = EVENT_KINDS[event.kind];
   const countdown = countdownLabel(event.startsAt, event.timeZone);
+  const friends = friendsGoingLabel(event.id);
   const to = routes.event(event.id);
   return (
     <article className={styles.featured}>
       <Link to={to} className={styles.featuredMedia} tabIndex={-1} aria-hidden="true">
-        <VenuePhoto venueName={event.venue.name} />
+        <VenuePhoto photo={event.photo} />
         <span className={styles.mediaNote}>Sample photo</span>
       </Link>
       <div className={styles.featuredBody}>
+        <h2 id={`section-${event.kind}`} className={styles.kicker}>
+          <span aria-hidden="true">{kind.icon}</span> {kind.label}
+        </h2>
         <span className={styles.badges}>
           <Badge variant="demo">Demo event</Badge>
-          <Badge variant="sponsored">Sponsored venue</Badge>
+          {event.venue.sponsored && <Badge variant="sponsored">Sponsored venue</Badge>}
         </span>
         <h3 className={styles.featuredTitle}>
           <Link to={to}>{event.title}</Link>
@@ -73,8 +178,15 @@ function FeaturedEvent({ event, going }: { event: CommunityEvent; going: boolean
         <p className={styles.featuredMeta}>
           {countdown ? `${countdown} · ` : ''}
           {eventShortDateLabel(event.startsAt, event.timeZone)} · {eventTimeLabel(event.startsAt, event.timeZone)} ·{' '}
-          {event.venue.name} · <strong>{event.priceLabel}</strong>
+          <strong>{event.priceLabel}</strong>
         </p>
+        <LocationLine event={event} viewer={viewer} />
+        {friends && (
+          <p className={styles.friendsGoing}>
+            <span aria-hidden="true">👥 </span>
+            {friends}
+          </p>
+        )}
         <div className={styles.actions}>
           {going ? (
             <>

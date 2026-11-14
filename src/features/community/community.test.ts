@@ -3,7 +3,8 @@ import { DEMO_EVENT, DEMO_GROUP, SEED_POSTS } from '@/shared/fixtures/ids';
 import { routes } from '@/shared/routes';
 import { communityActions, getGuestState, goingEventIds, isGoing, isMember, scoreboardActions } from '@/shared/state';
 import { __setBackendForTests } from '@/shared/state/storage';
-import { DEMO_LOCATION, EVENTS, GROUP, findEvent } from './content';
+import { DEMO_LOCATION, EVENTS, GROUP, PLAY_DAY, PLAY_DAY_ID, eventsOfKind, findEvent } from './content';
+import { DEMO_FRIENDS, friendsGoingLabel, initials } from './friends';
 import { distanceLabel, milesBetween, sortByDistance } from './geo';
 import { buildLeagueBoard, coursePoints, leagueWeek, timeLeftLabel } from './leaderboard';
 import { CHAT_MAX_LENGTH, CHAT_STORAGE_KEY, DEMO_CHAT, __resetChatCacheForTests, getOwnMessages, postMessage } from './chat';
@@ -23,13 +24,48 @@ describe('community content', () => {
     expect(findEvent('nope')).toBeUndefined();
   });
 
-  it('every event is a free, labeled demo at a fictional sponsored venue with a real preview post', () => {
+  it('every event is a free, labeled demo at a fictional venue with a photo', () => {
     for (const e of EVENTS) {
       expect(e.isDemo).toBe(true);
       expect(e.priceLabel).toBe('Free');
-      expect(e.venue).toMatchObject({ sponsored: true, fictional: true });
-      expect(SEED_POSTS.some((p) => p.id === e.previewPostId)).toBe(true);
+      expect(e.venue.fictional).toBe(true);
+      expect(e.photo.src).toBeTruthy();
+      expect(e.photo.alt).toMatch(/^Sample photo/);
     }
+  });
+
+  it('has one matchday (sponsored, with a real preview post) and one play day', () => {
+    const watch = eventsOfKind('watch-party');
+    const play = eventsOfKind('play-day');
+    expect(watch.map((e) => e.id)).toEqual([DEMO_EVENT.id]);
+    expect(play.map((e) => e.id)).toEqual([PLAY_DAY_ID]);
+    for (const e of watch) {
+      expect(e.venue.sponsored).toBe(true);
+      if (e.kind === 'watch-party') expect(SEED_POSTS.some((p) => p.id === e.previewPostId)).toBe(true);
+    }
+    expect(findEvent(PLAY_DAY_ID)?.organizer.groupId).toBe(DEMO_GROUP.id);
+    expect(new Set(EVENTS.map((e) => e.id)).size).toBe(EVENTS.length);
+  });
+
+  it('play day is near the demo location', () => {
+    expect(milesBetween(DEMO_LOCATION.coords, PLAY_DAY.venue.coords)).toBeLessThan(5);
+  });
+});
+
+describe('demo friends', () => {
+  it('are the shared demo players and only go to real events', () => {
+    const names = new Set(buildDemoPlayers().map((p) => p.displayName));
+    for (const f of DEMO_FRIENDS) {
+      expect(names.has(f.name)).toBe(true);
+      for (const id of f.going) expect(findEvent(id)).toBeDefined();
+    }
+  });
+
+  it('summarize who is going', () => {
+    expect(friendsGoingLabel(DEMO_EVENT.id)).toBe('Maya R. and 2 friends are going');
+    expect(friendsGoingLabel(PLAY_DAY_ID)).toBe('Maya R. and Sam K. are going');
+    expect(friendsGoingLabel('nope')).toBeNull();
+    expect(initials('Maya R.')).toBe('MR');
   });
 });
 
