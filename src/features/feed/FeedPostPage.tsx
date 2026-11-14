@@ -4,7 +4,7 @@ import { DEMO_EVENT } from '@/shared/fixtures/ids';
 import { feedActions, isOnboarded, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { Badge, ButtonLink, Card, CoachPrompt, PageHeader, usePageTitle } from '@/shared/ui';
-import { dateLabel, stories } from './content';
+import { dateLabel, findStory } from './content';
 import { MatchPick, Reconstruction, ShareStory, StoryQuiz } from './FeedWidgets';
 import styles from './Feed.module.css';
 
@@ -12,7 +12,7 @@ export function FeedPostPage() {
   const { postId = '' } = useParams();
   const { pathname } = useLocation();
   const state = useGuestState();
-  const post = stories.find(p => p.id === postId);
+  const post = findStory(postId);
   usePageTitle(post?.title ?? 'Story not found');
   useEffect(() => { if (post) feedActions.markPostViewed(post.id, post.tags); }, [post]);
   if (!post) return <div className={styles.stack}><CoachPrompt headingLevel={1} state="thinking">We couldn’t find that story.</CoachPrompt><ButtonLink to={routes.feed()}>Back to Feed</ButtonLink></div>;

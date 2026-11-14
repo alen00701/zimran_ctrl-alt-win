@@ -1,9 +1,13 @@
 import { SEED_POSTS } from '@/shared/fixtures/ids';
 import type { FeedState, InterestId, SubjectTag } from '@/shared/contracts/types';
+import { storyMedia } from './media';
+import { pictureStories } from './pictures';
 import { isVerifiedPublisherPost } from './publishers';
 
 /** Anything that can appear as a card in the stream. `local` posts use team-supplied video files. */
 export interface FeedPost {
+  /** Team-supplied media with no known event date (shown without a date). */
+  undated?: boolean;
   id: string; sourceUrl: string; title: string; summary: string; date: string;
   publisher: string; category: string; tags: SubjectTag[]; stat: string; caption: string;
   paragraphs: string[]; take: string; lesson?: string; clip?: boolean; preview?: boolean; local?: boolean;
@@ -69,63 +73,64 @@ const entries: Omit<Story, 'id' | 'sourceUrl'>[] = [
 ];
 export const stories: Story[] = SEED_POSTS.map((seed, i) => ({ ...seed, ...entries[i]! }));
 /** Extra short-form posts for the endless media stream. They deliberately stay feature-local. */
+/** The reel's photo cards are the team's own pictures; the six sourced seed stories stay open at /feed/:postId. */
 export const streamStories: FeedPost[] = [
-  ...stories,
+  ...pictureStories,
   {
     id: 'yamal-clip', sourceUrl: '', title: 'Lamine Yamal, in motion.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['players', 'techniques', 'match-moments'], stat: 'Yamal', caption: 'Lamine Yamal',
     summary: 'Lamine Yamal in a clip from the team’s own video library. Watch how he receives, turns and picks his moment.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Lamine Yamal. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
   {
     id: 'goalyamal-clip', sourceUrl: '', title: 'A Yamal goal, start to finish.', category: 'Goal clip', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['players', 'techniques', 'match-moments'], stat: 'Goal', caption: 'Lamine Yamal goal',
     summary: 'A goal by Lamine Yamal. Follow the build-up, the finish and the reaction in one short clip.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Lamine Yamal goal. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
   {
     id: 'barsapsglastmatch-clip', sourceUrl: '', title: 'Barça vs PSG: the last match.', category: 'Match recap', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['tactics', 'club-history', 'match-moments'], stat: 'Barça–PSG', caption: 'Barcelona vs Paris Saint-Germain',
     summary: 'Moments from the most recent Barcelona–Paris Saint-Germain meeting, cut into one watchable clip.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Barcelona vs Paris Saint-Germain. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
   {
     id: 'neymar-clip', sourceUrl: '', title: 'Neymar and the art of the dribble.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['players', 'techniques', 'match-moments'], stat: 'Neymar', caption: 'Neymar',
     summary: 'A Neymar clip built around flair: close control, quick feet and the one-v-one challenge.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Neymar. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
   {
     id: 'coutihno-clip', sourceUrl: '', title: 'Coutinho, vision and finish.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['players', 'techniques', 'match-moments'], stat: 'Coutinho', caption: 'Philippe Coutinho',
     summary: 'A Philippe Coutinho clip. Look for the weight of the pass and the strike from range.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Philippe Coutinho. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
   {
     id: 'doue-clip', sourceUrl: '', title: 'Désiré Doué: pace with the ball.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['players', 'techniques', 'match-moments'], stat: 'Doué', caption: 'Désiré Doué',
     summary: 'A Désiré Doué clip. Watch how he attacks space and keeps the ball moving at speed.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Désiré Doué. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
   {
     id: 'olise-clip', sourceUrl: '', title: 'Michael Olise, the left-footed creator.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['players', 'techniques', 'tactics'], stat: 'Olise', caption: 'Michael Olise',
     summary: 'A Michael Olise clip. A closer look at how he creates chances from wide areas.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Michael Olise. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
   {
     id: 'taarabt-clip', sourceUrl: '', title: 'Taarabt: the showman’s touch.', category: 'Player clip', date: '2026-11-14', publisher: 'The Touchline Desk',
     tags: ['players', 'techniques', 'match-moments'], stat: 'Taarabt', caption: 'Adel Taarabt',
     summary: 'An Adel Taarabt clip, a reminder that soccer can be as much about creativity as results.',
     paragraphs: ['This clip comes from the Touchline Desk’s own video library and is shown here as a short, original feed moment.', 'We keep the description to what the clip title says: Adel Taarabt. Watch it once for the result, then again for the detail.'],
-    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true,
+    take: 'Watch it twice: first for the moment, then for the movement before it.', clip: false, local: true, undated: true,
   },
 ];
 
@@ -140,7 +145,7 @@ const baseQuizzes: FeedQuiz[] = [
 /** One optional quiz per loop. The pool is the two quick questions plus one question per seed story. */
 export const streamQuizzes: FeedQuiz[] = [
   ...baseQuizzes,
-  ...stories.map((story): FeedQuiz => ({
+  ...pictureStories.map((story): FeedQuiz => ({
     id: `feed-reel-quiz-${story.id}`, title: 'Quick break · 1 question', prompt: story.question,
     options: story.options, correct: story.correct, explanation: story.explanation,
   })),
@@ -171,8 +176,8 @@ function shuffle<T>(items: T[], rand: () => number) {
 }
 /** Shuffles videos and photo stories separately, then alternates them so the two kinds are mixed. */
 function mixed(posts: FeedPost[], rand: () => number) {
-  const videos = shuffle(posts.filter(post => post.local), rand);
-  const photos = shuffle(posts.filter(post => !post.local), rand);
+  const videos = shuffle(posts.filter(post => storyMedia[post.id]?.video), rand);
+  const photos = shuffle(posts.filter(post => !storyMedia[post.id]?.video), rand);
   const out: FeedPost[] = [];
   while (videos.length || photos.length) {
     if (videos.length) out.push(videos.shift()!);
@@ -196,8 +201,11 @@ export const rankStreamStories = (interests: InterestId[], seed = 1) => {
   const ordered = [...tiers.keys()].sort((a, b) => b - a).flatMap(score => mixed(tiers.get(score)!, rand));
   return [...pinned, ...ordered];
 };
+/** Stories that carry a question: the sourced seeds plus the picture stories. */
+export const quizStories: Story[] = [...stories, ...pictureStories];
+export const findStory = (id: string) => quizStories.find(post => post.id === id);
 export function quizStory(feed: FeedState) {
-  const read = Object.values(feed.views).filter(view => stories.some(post => post.id === view.postId));
+  const read = Object.values(feed.views).filter(view => quizStories.some(post => post.id === view.postId));
   if (read.length < 2) return undefined;
-  return stories.find(post => post.id === read.sort((a, b) => a.firstViewedAt.localeCompare(b.firstViewedAt))[0]?.postId);
+  return quizStories.find(post => post.id === read.sort((a, b) => a.firstViewedAt.localeCompare(b.firstViewedAt))[0]?.postId);
 }

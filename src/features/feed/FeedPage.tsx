@@ -5,7 +5,7 @@ import { DEMO_EVENT, exerciseId } from '@/shared/fixtures/ids';
 import { feedActions, gameActions, scoreboardActions, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { Badge, Button, ButtonLink, StatusBar, usePageTitle } from '@/shared/ui';
-import { dateLabel, editionQuizId, quizStory, rankStreamStories, streamQuizzes, type FeedPost, type FeedQuiz } from './content';
+import { dateLabel, editionQuizId, quizStory, rankStreamStories, stories, streamQuizzes, type FeedPost, type FeedQuiz } from './content';
 import { MatchPick, ShareStory, StoryQuiz } from './FeedWidgets';
 import { storyMedia } from './media';
 import { publisherForName } from './publishers';
@@ -87,7 +87,7 @@ function Reel({ post, active, open, index, total }: { post: FeedPost; active: bo
       <span className={styles.publisher}>{publisher?.handle ?? '@touchlinedesk'} <span>{publisher ? '· Verified publisher' : '· Fictional publisher'}</span></span>
       <h2>{post.title}</h2><p>{post.summary}</p>
       <div className={styles.captionLinks}><Button variant="ghost" onClick={() => open('details', post)}>{post.preview ? 'Make your pick →' : 'The story behind it →'}</Button>{post.clip && <a href={post.sourceUrl} target="_blank" rel="noreferrer">Watch the original ↗</a>}</div>
-      <span className={styles.credit}>{post.local ? media.credit : `${dateLabel(post.date)} · ${media.credit}`}</span>
+      <span className={styles.credit}>{post.undated ? media.credit : `${dateLabel(post.date)} · ${media.credit}`}</span>
     </div>
   </article>;
 }
@@ -153,7 +153,7 @@ export function FeedPage() {
         {stream.map((item, index) => {
           if (item.type === 'post') return <Reel key={item.key} post={item.post} active={active === index && !panel} open={open} index={index} total={total} />;
           if (item.type === 'quiz') return <QuizReel key={item.key} quiz={item.quiz} index={index} total={total} />;
-          if (item.type === 'event') return <article key={item.key} className={`${styles.reel} ${styles.promotion}`} aria-label="Promoted watch party"><img className={styles.photo} src={storyMedia[ranked.find(p => p.preview)!.id]!.image} alt="MLS Cup Playoffs trophy" loading="lazy" /><div className={styles.shade} /><div className={styles.promoContent}><Badge variant="sponsored">Promoted · Demo event</Badge><h2>Better<br />together.</h2><p>Orlando City × FC Cincinnati</p><p>Nov 19 · Doors 7 PM ET<br />The Far Post Taproom · Orlando<br />Free admission</p><ButtonLink to={routes.event(DEMO_EVENT.id)}>Find your matchday people →</ButtonLink><small>Fictional venue. No league affiliation. Doors time is not kickoff.</small></div></article>;
+          if (item.type === 'event') return <article key={item.key} className={`${styles.reel} ${styles.promotion}`} aria-label="Promoted watch party"><img className={styles.photo} src={storyMedia[stories.find(p => p.preview)!.id]!.image} alt="MLS Cup Playoffs trophy" loading="lazy" /><div className={styles.shade} /><div className={styles.promoContent}><Badge variant="sponsored">Promoted · Demo event</Badge><h2>Better<br />together.</h2><p>Orlando City × FC Cincinnati</p><p>Nov 19 · Doors 7 PM ET<br />The Far Post Taproom · Orlando<br />Free admission</p><ButtonLink to={routes.event(DEMO_EVENT.id)}>Find your matchday people →</ButtonLink><small>Fictional venue. No league affiliation. Doors time is not kickoff.</small></div></article>;
           return <article key={item.key} className={`${styles.reel} ${styles.merch}`} aria-label="Sponsored merchandise"><div className={styles.scarf} aria-hidden="true"><span>ONE MORE</span><span>MATCH</span><span>TOUCHLINE GOODS</span></div><div className={styles.promoContent}><Badge variant="sponsored">Sponsored · Fictional brand</Badge><h2>Your weekend.<br />Your colors.</h2><p>The One More Match scarf · $24 demo price</p><details><summary>See the drop ↗</summary><p>Original knit scarf concept. Demo merchandise only — no checkout or stock is available.</p></details></div></article>;
         })}
       </div>
@@ -161,7 +161,7 @@ export function FeedPage() {
     </div>
     <aside className={styles.controls} aria-label="Feed navigation"><span>{String(active + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span><Button variant="secondary" onClick={() => move(-1)} disabled={active === 0} aria-label="Previous story"><Icon name="up" /></Button><Button variant="secondary" onClick={() => move(1)} disabled={active === total - 1} aria-label="Next story"><Icon name="down" /></Button><p>Scroll to<br />discover</p><small>Nov 14<br />2026 edition</small></aside>
     {panel && <Sheet title={panel.type === 'details' ? 'Behind the moment' : panel.type === 'quiz' ? 'Your quick quiz' : 'Share this moment'} onClose={() => setPanel(null)}>
-      {panel.type === 'details' ? <><Badge>{panel.post.category}</Badge><h3>{panel.post.title}</h3><p>{panel.post.local ? 'Team video · The Touchline Desk' : `${dateLabel(panel.post.date)} · Source: ${panel.post.publisher}`}</p>{panel.post.paragraphs.map(p => <p key={p}>{p}</p>)}<p><strong>Our take: </strong>{panel.post.take}</p>{panel.post.sourceUrl && <a href={panel.post.sourceUrl} target="_blank" rel="noreferrer">Original source ↗</a>}{panel.post.preview && <MatchPick />}<ButtonLink to={routes.feedPost(panel.post.id)} variant="secondary">Open full story</ButtonLink><StoryQuiz /></> : panel.type === 'quiz' ? <StoryQuiz /> : <><p>{panel.post.title}</p><ShareStory postId={panel.post.id} /></>}
+      {panel.type === 'details' ? <><Badge>{panel.post.category}</Badge><h3>{panel.post.title}</h3><p>{panel.post.undated ? 'Team video · The Touchline Desk' : `${dateLabel(panel.post.date)} · Source: ${panel.post.publisher}`}</p>{panel.post.paragraphs.map(p => <p key={p}>{p}</p>)}<p><strong>Our take: </strong>{panel.post.take}</p>{panel.post.sourceUrl && <a href={panel.post.sourceUrl} target="_blank" rel="noreferrer">Read more ↗</a>}{panel.post.preview && <MatchPick />}<ButtonLink to={routes.feedPost(panel.post.id)} variant="secondary">Open full story</ButtonLink><StoryQuiz /></> : panel.type === 'quiz' ? <StoryQuiz /> : <><p>{panel.post.title}</p><ShareStory postId={panel.post.id} /></>}
     </Sheet>}
   </section>;
 }
