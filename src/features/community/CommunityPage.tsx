@@ -9,13 +9,12 @@ import { countdownLabel, eventShortDateLabel, eventTimeLabel } from './format';
 import { DEMO_FRIENDS, friendsGoingLabel, initials } from './friends';
 import { distanceLabel, milesBetween, sortByDistance, useViewerLocation, } from './geo';
 import { LEAGUE_NAME, buildLeagueBoard, timeLeftLabel, useNow } from './leaderboard';
-import { StoreSection } from './StoreSection';
 import { VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
 const SECTION_ORDER: EventKind[] = ['watch-party', 'play-day'];
 
-/** /community: friends, the nearest matchday and play day, the weekly Silver League, then the store. */
+/** /community: friends, the nearest matchday and play day, and the weekly Silver League. */
 export function CommunityPage() {
   const state = useGuestState();
   const viewer = useViewerLocation();
@@ -65,7 +64,6 @@ export function CommunityPage() {
 
         <LeagueCard state={state} />
 
-        <StoreSection />
       </div>
     </>
   );
