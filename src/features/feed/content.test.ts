@@ -18,7 +18,8 @@ describe('edition selection', () => {
   });
   it('adds a larger stream catalog and keeps quiz breaks intentionally scarce', () => {
     expect(streamStories).toHaveLength(14);
-    expect(streamQuizzes).toHaveLength(2);
+    expect(streamQuizzes).toHaveLength(2 + stories.length);
+    expect(new Set(streamQuizzes.map(q => q.id)).size).toBe(streamQuizzes.length);
     expect(rankStreamStories(['tactics'])).toHaveLength(14);
     expect(new Set(streamStories.map(post => post.id)).size).toBe(streamStories.length);
     expect(streamStories.every(post => post.local || isVerifiedPublisherPost(post))).toBe(true);

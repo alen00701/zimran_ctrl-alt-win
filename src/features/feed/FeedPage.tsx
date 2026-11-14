@@ -97,22 +97,24 @@ type StreamItem =
   | { type: 'event'; key: string }
   | { type: 'merch'; key: string };
 
-function buildStream(posts: FeedPost[], batchCount: number, quizzes: Record<string, unknown>): StreamItem[] {
+/** One loop: 2 videos, 2 photo stories, 1 quiz. Quizzes come from the pool and skip ones already answered or skipped. */
+const LOOP = ['video', 'video', 'photo', 'photo', 'quiz'] as const;
+const VIDEO_LOOP = ['video', 'video', 'video', 'video', 'quiz'] as const;
+
+function buildStream(posts: FeedPost[], loops: number, pending: FeedQuiz[], videosOnly: boolean): StreamItem[] {
+  const videos = posts.filter(post => storyMedia[post.id]?.video);
+  const photos = posts.filter(post => !storyMedia[post.id]?.video);
   const items: StreamItem[] = [];
-  for (let batch = 0; batch < batchCount; batch += 1) {
-    let videoCount = 0;
-    for (const post of posts) {
-      items.push({ type: 'post', key: `${batch}-${post.id}`, post });
-      if (storyMedia[post.id]?.video) {
-        videoCount += 1;
-        const quiz = streamQuizzes[(videoCount / 3) - 1];
-        if (batch === 0 && videoCount % 3 === 0 && quiz && !quizzes[quiz.id]) items.push({ type: 'quiz', key: quiz.id, quiz });
-      }
+  let v = 0, p = 0, q = 0;
+  for (let loop = 0; loop < loops; loop += 1) {
+    for (const slot of videosOnly ? VIDEO_LOOP : LOOP) {
+      if (slot === 'video' && videos.length) { const post = videos[v % videos.length]!; items.push({ type: 'post', key: `v${v}-${post.id}`, post }); v += 1; }
+      if (slot === 'photo' && photos.length) { const post = photos[p % photos.length]!; items.push({ type: 'post', key: `p${p}-${post.id}`, post }); p += 1; }
+      if (slot === 'quiz') { const quiz = pending[q]; if (quiz) { items.push({ type: 'quiz', key: quiz.id, quiz }); q += 1; } }
     }
-    if (batch === 0) {
-      items.push({ type: 'event', key: 'event' });
-      items.push({ type: 'merch', key: 'merch' });
-    }
+    // The two labeled promotions appear once each, between loops.
+    if (loop === 1) items.push({ type: 'event', key: 'event' });
+    if (loop === 2) items.push({ type: 'merch', key: 'merch' });
   }
   return items;
 }
@@ -126,15 +128,18 @@ export function FeedPage() {
   const ranked = useMemo(() => rankStreamStories(preferences.interests, seed), [preferences.interests, seed]);
   const [mode, setMode] = useState<'all' | 'videos'>('all');
   const posts = useMemo(() => mode === 'videos' ? ranked.filter(p => storyMedia[p.id]?.video) : ranked, [ranked, mode]);
-  const [batchCount, setBatchCount] = useState(2);
+  const [loops, setLoops] = useState(4);
+  // Quizzes already answered or skipped before this visit never come back; the card you just answered stays until you leave.
+  const [settled] = useState(() => new Set(Object.keys(state.feed.quizzes)));
+  const pendingQuizzes = useMemo(() => streamQuizzes.filter(quiz => !settled.has(quiz.id)), [settled]);
   const [active, setActive] = useState(0);
   const [panel, setPanel] = useState<{ type: 'details' | 'share' | 'quiz'; post: FeedPost } | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
-  const stream = useMemo(() => buildStream(posts, batchCount, state.feed.quizzes), [posts, batchCount, state.feed.quizzes]);
+  const stream = useMemo(() => buildStream(posts, loops, pendingQuizzes, mode === 'videos'), [posts, loops, pendingQuizzes, mode]);
   const total = stream.length;
   usePageTitle('For you');
-  useEffect(() => { setActive(0); setBatchCount(2); viewport.current?.scrollTo({ top: 0 }); }, [mode, interestsKey]);
-  useEffect(() => { if (active >= stream.length - 4) setBatchCount(count => count + 1); }, [active, stream.length]);
+  useEffect(() => { setActive(0); setLoops(4); viewport.current?.scrollTo({ top: 0 }); }, [mode, interestsKey]);
+  useEffect(() => { if (active >= stream.length - 4) setLoops(count => count + 1); }, [active, stream.length]);
   const move = (direction: number) => {
     const target = Math.max(0, Math.min(total - 1, active + direction));
     viewport.current?.scrollTo({ top: target * viewport.current.clientHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });

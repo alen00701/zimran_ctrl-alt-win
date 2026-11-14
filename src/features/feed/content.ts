@@ -133,9 +133,17 @@ export interface FeedQuiz {
   id: string; title: string; prompt: string; options: [string, string, string]; correct: number; explanation: string;
 }
 /** Two optional breaks per session, positioned only after every third video. */
-export const streamQuizzes: FeedQuiz[] = [
+const baseQuizzes: FeedQuiz[] = [
   { id: 'feed-reel-quiz-restarts', title: 'Quick break · 1 question', prompt: 'Why was Liverpool’s quick corner so effective?', options: ['Barcelona had not reset', 'The ball was out', 'It was a penalty'], correct: 0, explanation: 'The defenders were not set when Alexander-Arnold took the corner.' },
   { id: 'feed-reel-quiz-momentum', title: 'Quick break · 1 question', prompt: 'What is a useful cue after a momentum swing?', options: ['Who wants the ball next', 'The crowd volume only', 'The kit color'], correct: 0, explanation: 'The next player willing to receive can reveal whether a team is still composed.' },
+];
+/** One optional quiz per loop. The pool is the two quick questions plus one question per seed story. */
+export const streamQuizzes: FeedQuiz[] = [
+  ...baseQuizzes,
+  ...stories.map((story): FeedQuiz => ({
+    id: `feed-reel-quiz-${story.id}`, title: 'Quick break · 1 question', prompt: story.question,
+    options: story.options, correct: story.correct, explanation: story.explanation,
+  })),
 ];
 export const editionQuizId = 'feed-quiz:2026-11-14';
 export const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
