@@ -56,7 +56,7 @@ function EventDetails({ event }: { event: CommunityEvent }) {
       <figure className={styles.venueFigure}>
         <VenuePhoto photo={event.photo} />
         <figcaption>
-          Sample photo · {event.venue.name} is a fictional venue
+          {event.kind === 'watch-party' ? 'Matchup artwork' : 'Sample photo'} · {event.venue.name} is a fictional venue{event.kind === 'watch-party' ? '. No partnership with either club is claimed.' : ''}
         </figcaption>
       </figure>
 

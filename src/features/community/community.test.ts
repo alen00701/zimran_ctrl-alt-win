@@ -30,7 +30,7 @@ describe('community content', () => {
       expect(e.priceLabel).toBe('Free');
       expect(e.venue.fictional).toBe(true);
       expect(e.photo.src).toBeTruthy();
-      expect(e.photo.alt).toMatch(/^Sample photo/);
+      expect(e.photo.alt.length).toBeGreaterThan(20);
     }
   });
 

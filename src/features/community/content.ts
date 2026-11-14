@@ -6,8 +6,8 @@
  * claim of a club, league, venue or media partnership.
  */
 import { DEMO_EVENT, DEMO_GROUP, DEMO_PLAY_DAY, SEED_POSTS } from '@/shared/fixtures/ids';
-import venueBarUrl from './assets/venue-bar.jpg';
-import fieldPlayUrl from './assets/field-play.jpg';
+import matchupUrl from './assets/watch-party-matchup.jpg';
+import fieldUrl from './assets/play-day-field.jpg';
 
 export interface CommunityGroup {
   id: string;
@@ -53,7 +53,7 @@ interface EventBase {
     sponsored: boolean;
     fictional: true;
   };
-  /** Sample photo standing in for the fictional venue. */
+  /** Picture for the event card. The matchup art shows the two real clubs' crests; see MEDIA note in the README. */
   photo: { src: string; width: number; height: number; alt: string };
   priceLabel: string;
   organizer: { name: string; groupId: string };
@@ -116,10 +116,10 @@ export const WATCH_PARTY: WatchPartyEvent = {
     fictional: true,
   },
   photo: {
-    src: venueBarUrl,
-    width: 547,
-    height: 308,
-    alt: 'Sample photo: a sports bar with a big screen showing a match, tables and tall stools',
+    src: matchupUrl,
+    width: 800,
+    height: 448,
+    alt: 'Illustration: FC Cincinnati versus Orlando City, with a night skyline behind each club crest',
   },
   priceLabel: 'Free',
   organizer: { name: DEMO_GROUP.name, groupId: DEMO_EVENT.groupId },
@@ -154,10 +154,10 @@ export const PLAY_DAY: PlayDayEvent = {
     fictional: true,
   },
   photo: {
-    src: fieldPlayUrl,
-    width: 1200,
-    height: 675,
-    alt: 'Sample photo: adults playing a pickup soccer game on an artificial turf field',
+    src: fieldUrl,
+    width: 547,
+    height: 365,
+    alt: 'Aerial view of a green artificial-turf soccer field with white markings and orange benches',
   },
   priceLabel: 'Free',
   organizer: { name: DEMO_GROUP.name, groupId: DEMO_GROUP.id },

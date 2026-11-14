@@ -413,7 +413,7 @@
 }
 .eventRow[data-going] { background: var(--tone-bg); border-color: var(--tone); }
 .rowMedia { display: block; overflow: hidden; background: var(--color-surface-inverse); }
-.rowMedia .venuePhoto { aspect-ratio: 21 / 9; width: 100%; height: 100%; object-fit: cover; }
+.rowMedia .venuePhoto { aspect-ratio: 16 / 9; width: 100%; height: 100%; object-fit: cover; }
 .rowBody { display: grid; gap: var(--space-2); padding: var(--space-4); min-width: 0; }
 .rowTitle { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-heavy); line-height: var(--leading-tight); }
 .rowTitle a { color: var(--color-text); text-decoration: none; }
