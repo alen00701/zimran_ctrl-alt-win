@@ -1,6 +1,6 @@
 {
-  "name": "Read the Game",
-  "short_name": "Read the Game",
+  "name": "BALLR",
+  "short_name": "BALLR",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",

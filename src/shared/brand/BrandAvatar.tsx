@@ -39,7 +39,7 @@ export function BrandAvatar({ size = 'md', state = 'idle', decorative = false, l
         src={coachUrl}
         width={fill ? undefined : px}
         height={fill ? undefined : px / BRAND_AVATAR_ASPECT}
-        alt={decorative ? '' : (label ?? `${BRAND_AVATAR_NAME}, the Read the Game mascot`)}
+        alt={decorative ? '' : (label ?? `${BRAND_AVATAR_NAME}, the BALLR mascot`)}
         aria-hidden={decorative || undefined}
         draggable={false}
         decoding="async"

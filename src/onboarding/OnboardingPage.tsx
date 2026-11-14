@@ -10,6 +10,7 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router';
 import type { Expertise, InterestId } from '@/shared/contracts/types';
 import { EXPERTISE_OPTIONS, INTEREST_OPTIONS } from '@/shared/contracts/catalog';
 import { isOnboarded, preferencesActions, useGuestState } from '@/shared/state';
+import { BrandLogo } from '@/shared/brand';
 import { routes, safeReturnTo } from '@/shared/routes';
 import { Button, CoachPrompt, OptionCard, ProgressBar, usePageTitle } from '@/shared/ui';
 import styles from './OnboardingPage.module.css';
@@ -61,6 +62,7 @@ export function OnboardingPage() {
           </svg>
         </button>
         <ProgressBar value={step === 1 ? 0.34 : 0.67} label={`Setup step ${step} of 2`} />
+        <BrandLogo variant="mark" height={36} />
       </header>
 
       <main className={styles.body}>

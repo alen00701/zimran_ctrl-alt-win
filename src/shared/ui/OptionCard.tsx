@@ -16,7 +16,7 @@ export interface OptionCardProps {
   trailing?: ReactNode;
 }
 
-/** Selectable row from the Duolingo onboarding lists, in Read the Game colors. */
+/** Selectable row from the Duolingo onboarding lists, in BALLR colors. */
 export function OptionCard({ mode, name, value, label, selected, onChange, leading, trailing }: OptionCardProps) {
   return (
     <label className={styles.card} data-selected={selected || undefined}>

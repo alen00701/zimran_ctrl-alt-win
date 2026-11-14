@@ -1,10 +1,10 @@
 import { useEffect, type ReactNode } from 'react';
 import styles from './PageHeader.module.css';
 
-/** Sets document.title as "<title> · Read the Game". */
+/** Sets document.title as "<title> · BALLR". */
 export function usePageTitle(title: string) {
   useEffect(() => {
-    document.title = title ? `${title} · Read the Game` : 'Read the Game';
+    document.title = title ? `${title} · BALLR` : 'BALLR';
   }, [title]);
 }
 

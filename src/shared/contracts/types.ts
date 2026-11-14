@@ -1,5 +1,5 @@
 /**
- * Frozen shared contracts for Read the Game.
+ * Frozen shared contracts for BALLR.
  * Owned by Foundation / integration. Feature branches must not edit this file;
  * request changes from the integrator, who publishes them once for everyone.
  */

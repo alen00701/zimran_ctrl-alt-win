@@ -198,14 +198,14 @@ function EventDetails({ event }: { event: CommunityEvent }) {
         {event.venue.sponsored ? (
           <p>
             <Badge variant="sponsored">Sponsored venue</Badge>{' '}
-            {event.venue.name} is a fictional venue created for this demo. In the Read the Game business model, venues
+            {event.venue.name} is a fictional venue created for this demo. In the BALLR business model, venues
             pay to feature their events here. Admission stays free for fans.
           </p>
         ) : (
           <p>{event.venue.name} is a fictional field created for this demo. Playing is free.</p>
         )}
         <p className={styles.muted}>
-          This is a demo event. Read the Game has no partnership with{' '}
+          This is a demo event. BALLR has no partnership with{' '}
           {event.kind === 'watch-party' ? `${event.match.home}, ${event.match.away}, Major League Soccer, ` : ''}
           any club, league, venue or media company.
         </p>

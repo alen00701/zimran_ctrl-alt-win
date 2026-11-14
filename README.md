@@ -1,4 +1,4 @@
-# Read the Game
+# BALLR
 
 Responsive web app (mobile + desktop) for US adults 25–45 who want to enjoy and understand soccer.
 Four tabs: **Feed · Learn · Community · Account**. Guests use everything without registration; progress lives in the browser.
@@ -69,7 +69,7 @@ import { BrandAvatar } from '@/shared/brand';
 | `size` | `'xs'`(32) `'sm'`(48) `'md'`(88) `'lg'`(120) `'xl'`(176) or a number of px | `'md'` |
 | `state` | `'idle' \| 'speaking' \| 'thinking' \| 'correct' \| 'incorrect' \| 'celebrate'` (subtle motion only, honors reduced motion) | `'idle'` |
 | `decorative` | `true` when nearby text already carries the message | `false` |
-| `label` | accessible name | "Coach, the Read the Game mascot" |
+| `label` | accessible name | "Coach, the BALLR mascot" |
 
 - Production file: `src/shared/brand/assets/coach.png`, 512×512, aspect ratio 1:1 (`BRAND_AVATAR_ASPECT`).
 - The source had an alpha channel but an opaque white background. The production copy has the background removed with a soft edge. The original stays in `docs/references/`.
@@ -199,3 +199,6 @@ Paywall rule: the first two distinct completed lessons are free and stay free on
 - No reference screenshots were supplied for lesson feedback or completion. The pattern above is an extrapolation.
 - The feature tabs are starters. Their content, seed-story summaries, lessons, venue details and full Account belong to the feature owners.
 - Not yet deployed. There is no git remote yet.
+
+## BALLR logo
+`src/shared/brand/BrandLogo.tsx`: `<BrandLogo variant="full" | "mark" height={n} />`. Files: `shared/brand/assets/ballr-logo.png` (mark + wordmark) and `ballr-mark.png` (planet B). Used in the desktop rail, the mobile top bar and onboarding. The favicon, `apple-touch-icon.png` and the PWA icons in `public/` are the mark. The coach mascot (`BrandAvatar`) is a separate asset.

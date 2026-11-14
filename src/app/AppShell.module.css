@@ -61,12 +61,15 @@
   padding: var(--space-6) var(--layout-gutter) 0;
 }
 .status {
+  display: flex; align-items: center; gap: var(--space-3);
   position: sticky; top: 0; z-index: 5;
   margin: calc(var(--space-6) * -1) calc(var(--layout-gutter) * -1) var(--space-2);
   padding: var(--space-3) var(--layout-gutter) 0;
   background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   backdrop-filter: blur(6px);
 }
+.status > :last-child { flex: 1; min-width: 0; }
+.mobileLogo { display: grid; flex: none; padding-top: var(--space-1); }
 .loading { color: var(--color-text-muted); }
 
 /* ---- desktop: left rail (INFERRED adaptation of the bottom bar, same four tabs) ---- */
@@ -110,5 +113,6 @@
   }
   .main { padding: 0 0 var(--space-12) var(--rail-width); }
   .content { max-width: calc(var(--layout-content) + 2 * var(--space-8)); padding: var(--space-10) var(--space-8) 0; }
+  .mobileLogo { display: none; }
   .status { margin: calc(var(--space-10) * -1) calc(var(--space-8) * -1) var(--space-2); padding: var(--space-4) var(--space-8) 0; }
 }

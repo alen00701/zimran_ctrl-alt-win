@@ -1,5 +1,5 @@
 /*
- * Read the Game — design tokens.
+ * BALLR — design tokens.
  * Source of color: docs/references/palette-what-we-value.png (exact sampled values).
  * Values marked INFERRED are not in the palette document; they are derived for UI states.
  * Feature code uses the SEMANTIC tokens (--color-*, --space-*, --radius-*, --text-*),
