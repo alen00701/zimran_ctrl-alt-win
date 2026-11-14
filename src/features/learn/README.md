@@ -34,3 +34,12 @@ Categories with no lesson show "Coming soon" in the Modules grid.
 ## Notes for the integrator
 - Add the personalization mode above to the main README.
 - `Pitch` uses its own SVG and only semantic tokens. No new dependencies.
+
+## Learning path (Duolingo-style islands)
+`/learn` is a winding path: level switcher (Beginner · Intermediate · Advanced), points / day-streak / lessons counters, an overall level progress bar, then 5 blocks per level. Each block has a colored banner (level and block number, `x/y lessons` bar, guide button) and zig-zag island nodes. The team avatar sits beside the path where the reference shows the owl.
+
+- Structure: `catalog/path.ts`. Planned blocks without authored lessons show "Coming soon" and are never playable.
+- **Rules basics** (`catalog/rulesBasics.ts`) is the first Beginner block: 10 short lessons (`/learn/rules-drill-*`), each with a key rule and a quick check, unlocked one by one, then a 10-question block quiz (`/learn/rules-basics-quiz`): counter, progress bar, instant feedback, results, pass at 7/10, Retry. A mid-quiz reload resumes the same question.
+- Gate: newcomers (expertise `new` or not set) must pass Rules basics before other lessons and levels open on the path. Familiar/expert fans see it as an optional refresher. Deep links to course lessons (for example from Feed) always open, as journey 2 requires.
+- Rules basics progress is stored in `course.lessons['rules-basics'].answers` and never calls `completeLesson`, so it does not use up the two free course lessons. Each drill check and quiz question scores 10 points on its first attempt only, through `recordFirstAttempt`.
+- State is pure and tested in `logic/path.ts` (`buildPath`, `readRules`, `streakDays`).

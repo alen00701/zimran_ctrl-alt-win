@@ -1,8 +1,12 @@
-import { useParams } from 'react-router';
+import { Navigate, useParams } from 'react-router';
 import { isLessonUnlocked, useGuestSlice } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { ButtonLink, CoachPrompt, PageHeader } from '@/shared/ui';
 import { getLesson } from './catalog';
+import { getDrill, RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ_ID } from './catalog/rulesBasics';
+import { BlockQuizPage } from './BlockQuizPage';
+import { DrillPage } from './DrillPage';
+import { readRules } from './logic/path';
 import { LessonPlayer } from './LessonPlayer';
 import { MembershipCard } from './MembershipCard';
 import styles from './Lesson.module.css';
@@ -12,6 +16,17 @@ export function LessonPage() {
   const { lessonId = '' } = useParams();
   const course = useGuestSlice('course');
   const lesson = getLesson(lessonId);
+  const drill = getDrill(lessonId);
+
+  // Rules basics block: drills, block quiz, and the block ID itself (used by Account's "Resume").
+  if (drill) return <DrillPage key={drill.id} drill={drill} />;
+  if (lessonId === RULES_QUIZ_ID) return <BlockQuizPage />;
+  if (lessonId === RULES_BLOCK_ID) {
+    const rules = readRules(course);
+    const nextDrill = RULES_DRILLS.find((d) => !rules.done.has(d.id));
+    const to = nextDrill ? routes.lesson(nextDrill.id) : rules.passed ? `${routes.learn()}?level=beginner` : routes.lesson(RULES_QUIZ_ID);
+    return <Navigate to={to} replace />;
+  }
 
   if (!lesson) {
     return (
