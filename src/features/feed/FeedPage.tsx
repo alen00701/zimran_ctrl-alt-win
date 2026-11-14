@@ -108,7 +108,7 @@ function Reel({ post, active, near, open, index, total }: { post: FeedPost; acti
     <div className={styles.mediaLabel}>{media.video ? '▶ Video' : '▧ Photo story'} · {post.category}</div>
     {media.video && silenced && !paused && <button type="button" className={styles.soundHint} onClick={toggleSound}><Icon name="sound" /> Tap for sound</button>}
     {media.video && <button type="button" className={styles.tapLayer} onClick={toggle} aria-label={paused ? `Play video: ${post.title}` : `Pause video: ${post.title}`} />}
-    {media.video && paused && <span className={styles.pausedMark} aria-hidden="true"><Icon name="pause" /></span>}
+    {media.video && paused && <span className={styles.pausedMark} aria-hidden="true"><Icon name="play" /></span>}
     <div className={styles.actions}>
       <div className={styles.avatar}><BrandAvatar size="sm" decorative /></div>
       {media.video && <Button variant="ghost" className={styles.action} onClick={toggle} aria-label={paused ? 'Play video' : 'Pause video'}><Icon name={paused ? 'play' : 'pause'} /><span>{paused ? 'Play' : 'Pause'}</span></Button>}
