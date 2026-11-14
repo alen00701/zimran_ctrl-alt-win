@@ -1,5 +1,6 @@
 import { SEED_POSTS } from '@/shared/fixtures/ids';
 import type { FeedState, InterestId, SubjectTag } from '@/shared/contracts/types';
+import { isVerifiedPublisherPost } from './publishers';
 
 export interface Story {
   id: string; sourceUrl: string; title: string; summary: string; date: string;
@@ -109,7 +110,7 @@ export const editionQuizId = 'feed-quiz:2026-11-14';
 export const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 export const rankStories = (interests: InterestId[]) => [...stories].sort((a, b) => b.tags.filter(tag => interests.some(i => i === tag)).length - a.tags.filter(tag => interests.some(i => i === tag)).length);
 export const rankStreamStories = (interests: InterestId[]) =>
-  [...streamStories].sort((a, b) => {
+  streamStories.filter(isVerifiedPublisherPost).sort((a, b) => {
     const interestDifference =
       b.tags.filter(tag => interests.some(interest => interest === tag)).length -
       a.tags.filter(tag => interests.some(interest => interest === tag)).length;

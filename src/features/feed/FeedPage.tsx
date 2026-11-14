@@ -8,6 +8,7 @@ import { Badge, Button, ButtonLink, usePageTitle } from '@/shared/ui';
 import { dateLabel, editionQuizId, quizStory, rankStreamStories, streamQuizzes, type FeedQuiz, type Story } from './content';
 import { MatchPick, ShareStory, StoryQuiz } from './FeedWidgets';
 import { storyMedia } from './media';
+import { publisherForName } from './publishers';
 import styles from './Reels.module.css';
 
 function Icon({ name }: { name: 'share' | 'info' | 'play' | 'pause' | 'up' | 'down' | 'quiz' }) {
@@ -43,6 +44,7 @@ function QuizReel({ quiz, index, total }: { quiz: FeedQuiz; index: number; total
 }
 function Reel({ post, active, open, index, total }: { post: Story; active: boolean; open: (type: 'details' | 'share' | 'quiz', post: Story) => void; index: number; total: number }) {
   const media = storyMedia[post.id]!;
+  const publisher = publisherForName(post.publisher);
   /** Third-party players must start only after an explicit tap: browsers otherwise block autoplay. */
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -82,7 +84,7 @@ function Reel({ post, active, open, index, total }: { post: Story; active: boole
       {hasQuiz && <Button variant="ghost" className={styles.action} onClick={() => open('quiz', post)} aria-label="Open story quiz"><Icon name="quiz" /><span>Quiz</span></Button>}
     </div>
     <div className={styles.caption}>
-      <span className={styles.publisher}>@touchlinedesk <span>· Fictional publisher</span></span>
+      <span className={styles.publisher}>{publisher?.handle ?? '@touchlinedesk'} <span>{publisher ? '· Verified publisher' : '· Fictional publisher'}</span></span>
       <h2>{post.title}</h2><p>{post.summary}</p>
       <div className={styles.captionLinks}><Button variant="ghost" onClick={() => open('details', post)}>{post.preview ? 'Make your pick →' : 'The story behind it →'}</Button>{post.clip && <a href={post.sourceUrl} target="_blank" rel="noreferrer">Watch the original ↗</a>}</div>
       <span className={styles.credit}>{dateLabel(post.date)} · {media.credit}</span>

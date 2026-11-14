@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SEED_POSTS } from '@/shared/fixtures/ids';
 import { quizStory, rankStories, rankStreamStories, stories, streamQuizzes, streamStories } from './content';
 import type { FeedState } from '@/shared/contracts/types';
+import { canSubmitForReview, isVerifiedPublisherPost } from './publishers';
 
 describe('edition selection', () => {
   it('keeps every required source and unique public ID', () => {
@@ -19,6 +20,13 @@ describe('edition selection', () => {
     expect(streamQuizzes).toHaveLength(2);
     expect(rankStreamStories(['tactics'])).toHaveLength(10);
     expect(new Set(streamStories.map(post => post.id)).size).toBe(streamStories.length);
+    expect(streamStories.every(isVerifiedPublisherPost)).toBe(true);
+  });
+  it('allows publishing only from verified-source staff, never the AI assistant', () => {
+    const submission = { publisherId: 'uefa', sourceUrl: 'https://www.uefa.com/story', title: 'A source post', summary: 'A sourced update.', publishedAt: '2026-11-14T12:00:00Z' };
+    expect(canSubmitForReview({ ...submission, actorRole: 'editor' })).toBe(true);
+    expect(canSubmitForReview({ ...submission, actorRole: 'ai-assistant' })).toBe(false);
+    expect(canSubmitForReview({ ...submission, actorRole: 'owner', sourceUrl: 'https://untrusted.example/story' })).toBe(false);
   });
   it('requires two known distinct stories and asks about an actually read story', () => {
     const feed: FeedState = { views: {}, quizzes: {}, picks: {} };
