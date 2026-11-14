@@ -6,7 +6,7 @@
  * claim of a club, league, venue or media partnership.
  */
 import { DEMO_EVENT, DEMO_GROUP, DEMO_PLAY_DAY, SEED_POSTS } from '@/shared/fixtures/ids';
-import matchupUrl from './assets/watch-party-matchup.png';
+import matchupUrl from './assets/watch-party-matchup-kids.png';
 import fieldUrl from './assets/play-day-5v5.png';
 
 export interface CommunityGroup {
@@ -118,11 +118,10 @@ export const WATCH_PARTY: WatchPartyEvent = {
   },
   photo: {
     src: matchupUrl,
-    width: 400,
-    height: 400,
-    fit: 'contain',
-    backdrop: 'linear-gradient(90deg, #5c2d91 50%, #ff5a00 50%)',
-    alt: 'Matchup graphic: the Orlando City crest on purple and the FC Cincinnati crest on orange, split by a diagonal',
+    width: 600,
+    height: 900,
+    position: 'center 8%',
+    alt: 'Illustration: Orlando City versus Cincinnati on purple and orange tiles, with two kids in club colors kicking a ball below',
   },
   priceLabel: 'Free',
   organizer: { name: DEMO_GROUP.name, groupId: DEMO_EVENT.groupId },
