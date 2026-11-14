@@ -9,6 +9,7 @@ import { dateLabel, editionQuizId, quizStory, rankStreamStories, stories, stream
 import { MatchPick, ShareStory, StoryQuiz } from './FeedWidgets';
 import { storyMedia } from './media';
 import { publisherForName } from './publishers';
+import { setSoundOn, useSoundOn } from './sound';
 import styles from './Reels.module.css';
 
 function Icon({ name }: { name: 'share' | 'info' | 'play' | 'pause' | 'up' | 'down' | 'quiz' | 'sound' | 'muted' }) {
@@ -47,7 +48,10 @@ function Reel({ post, active, open, index, total }: { post: FeedPost; active: bo
   const media = storyMedia[post.id]!;
   const publisher = publisherForName(post.publisher);
   const video = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
+  const soundOn = useSoundOn();
+  // Sound is wanted but the browser refused it (no tap yet): the clip plays muted until the first tap.
+  const [silenced, setSilenced] = useState(false);
+  const tappedAt = useRef(0);
   const [paused, setPaused] = useState(false);
   const state = useGuestState();
   const hasQuiz = !!quizStory(state.feed) && state.feed.quizzes[editionQuizId]?.status !== 'dismissed';
@@ -56,29 +60,58 @@ function Reel({ post, active, open, index, total }: { post: FeedPost; active: bo
     const timer = setTimeout(() => feedActions.markPostViewed(post.id, post.tags), 5000);
     return () => clearTimeout(timer);
   }, [active, post]);
-  // Team videos play (muted, as browsers require) while their card is on screen and rewind when it leaves.
+  // Videos open with sound. Browsers only allow that after a tap on the page, so if the browser refuses,
+  // the clip plays muted and the first tap anywhere turns the sound on.
   useEffect(() => {
     const el = video.current;
     if (!el) return;
-    if (active) { setPaused(false); el.play().catch(() => setPaused(true)); }
-    else { el.pause(); el.currentTime = 0; }
-  }, [active]);
+    if (!active) { el.pause(); el.currentTime = 0; return; }
+    setPaused(false);
+    el.muted = !soundOn;
+    el.play().then(() => setSilenced(false)).catch(() => {
+      if (!soundOn) { setPaused(true); return; }
+      el.muted = true;
+      setSilenced(true);
+      el.play().catch(() => setPaused(true));
+    });
+  }, [active, soundOn]);
+  useEffect(() => {
+    if (!silenced || !active) return;
+    const unmute = () => {
+      const el = video.current;
+      if (!el) return;
+      el.muted = false;
+      tappedAt.current = Date.now();
+      setSilenced(false);
+    };
+    window.addEventListener('pointerup', unmute, { once: true, capture: true });
+    window.addEventListener('keydown', unmute, { once: true, capture: true });
+    return () => { window.removeEventListener('pointerup', unmute, true); window.removeEventListener('keydown', unmute, true); };
+  }, [silenced, active]);
   const toggle = () => {
     const el = video.current;
-    if (!el) return;
+    if (!el || Date.now() - tappedAt.current < 400) return; // the tap that just turned the sound on is not a pause
     if (el.paused) { el.play().then(() => setPaused(false)).catch(() => setPaused(true)); } else { el.pause(); setPaused(true); }
+  };
+  const muted = !soundOn || silenced;
+  const toggleSound = () => {
+    if (Date.now() - tappedAt.current < 400) return; // this same tap already turned the sound on
+    const el = video.current;
+    if (el && muted) { el.muted = false; setSilenced(false); }
+    setSoundOn(muted ? true : false);
   };
   return <article className={styles.reel} aria-label={`${index + 1} of ${total}: ${post.title}`}>
     {media.video
-      ? <video ref={video} className={styles.video} src={media.video} muted={muted} loop playsInline preload="metadata" aria-label={media.alt} onClick={toggle} />
+      ? <video ref={video} className={styles.video} src={media.video} loop playsInline preload="metadata" aria-label={media.alt} onClick={toggle} />
       : <img className={styles.photo} src={media.image} alt={media.alt} style={{ objectPosition: media.position }} loading={index < 2 ? 'eager' : 'lazy'} />}
     <div className={styles.shade} />
     <div className={styles.mediaLabel}>{media.video ? '▶ Video' : '▧ Photo story'} · {post.category}</div>
+    {media.video && silenced && !paused && <button type="button" className={styles.soundHint} onClick={toggleSound}><Icon name="sound" /> Tap for sound</button>}
     {media.video && paused && <div className={styles.videoPrompt}><Button variant="inverse" onClick={toggle} aria-label={`Play video: ${post.title}`}><Icon name="play" /> Play video</Button></div>}
     <div className={styles.actions}>
       <div className={styles.avatar}><BrandAvatar size="sm" decorative /></div>
       {media.video && <Button variant="ghost" className={styles.action} onClick={toggle} aria-label={paused ? 'Play video' : 'Pause video'}><Icon name={paused ? 'play' : 'pause'} /><span>{paused ? 'Play' : 'Pause'}</span></Button>}
-      {media.video && <Button variant="ghost" className={styles.action} onClick={() => setMuted(!muted)} aria-pressed={!muted} aria-label={muted ? 'Turn sound on' : 'Mute video'}><Icon name={muted ? 'muted' : 'sound'} /><span>{muted ? 'Sound' : 'Mute'}</span></Button>}
+      {media.video && <Button variant="ghost" className={styles.action} onClick={toggleSound} aria-pressed={!muted} aria-label={muted ? 'Turn sound on' : 'Mute video'}><Icon name={muted ? 'muted' : 'sound'} /><span>{muted ? 'Sound' : 'Mute'}</span></Button>}
       <Button variant="ghost" className={styles.action} onClick={() => open('details', post)} aria-label={`Details for ${post.title}`}><Icon name="info" /><span>Story</span></Button>
       <Button variant="ghost" className={styles.action} onClick={() => open('share', post)} aria-label={`Share ${post.title}`}><Icon name="share" /><span>Share</span></Button>
       {hasQuiz && <Button variant="ghost" className={styles.action} onClick={() => open('quiz', post)} aria-label="Open story quiz"><Icon name="quiz" /><span>Quiz</span></Button>}
