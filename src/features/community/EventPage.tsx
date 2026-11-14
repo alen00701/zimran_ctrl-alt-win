@@ -4,7 +4,8 @@ import { routes } from '@/shared/routes';
 import { Badge, Button, ButtonLink, Card, CoachPrompt, PageHeader, usePageTitle } from '@/shared/ui';
 import { GROUP, findEvent, type CommunityEvent } from './content';
 import { countdownLabel, eventDateLabel, eventTimeLabel, viewerTimeLabel } from './format';
-import { VenuePicture } from './VenuePicture';
+import { EventChat } from './EventChat';
+import { VENUE_PHOTO_CREDIT, VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
 /** /community/events/:eventId. Works as a deep link and after a reload: RSVP lives in shared guest state. */
@@ -49,8 +50,10 @@ function EventDetails({ event }: { event: CommunityEvent }) {
       />
 
       <figure className={styles.venueFigure}>
-        <VenuePicture venueName={event.venue.name} />
-        <figcaption>{event.venue.name}, {event.venue.city} · illustration of a fictional venue</figcaption>
+        <VenuePhoto venueName={event.venue.name} />
+        <figcaption>
+          Sample photo for a fictional venue · Photo: {VENUE_PHOTO_CREDIT}
+        </figcaption>
       </figure>
 
       <Card variant="inverse" className={styles.matchCard}>
@@ -125,6 +128,8 @@ function EventDetails({ event }: { event: CommunityEvent }) {
           )}
         </div>
       </section>
+
+      <EventChat eventId={event.id} timeZone={event.timeZone} going={going} />
 
       <Card>
         <h2 className={styles.h3}>The plan</h2>

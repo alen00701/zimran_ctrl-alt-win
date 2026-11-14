@@ -6,6 +6,8 @@ import { __setBackendForTests } from '@/shared/state/storage';
 import { DEMO_LOCATION, EVENTS, GROUP, findEvent } from './content';
 import { distanceLabel, milesBetween, sortByDistance } from './geo';
 import { buildGroupBoard, coursePoints } from './leaderboard';
+import { CHAT_MAX_LENGTH, CHAT_STORAGE_KEY, DEMO_CHAT, __resetChatCacheForTests, getOwnMessages, postMessage } from './chat';
+import { buildDemoPlayers } from '@/shared/fixtures/demoPlayers';
 import { countdownLabel, eventDateLabel, eventShortDateLabel, eventTimeLabel, viewerTimeLabel } from './format';
 
 function mem() {
@@ -151,5 +153,53 @@ describe('group leaderboard', () => {
 
     communityActions.leaveGroup(DEMO_GROUP.id);
     expect(buildGroupBoard(getGuestState(), DEMO_GROUP.id, now).you).toBeNull();
+  });
+});
+
+describe('points stay separate from matchdays', () => {
+  beforeEach(() => __setBackendForTests(mem()));
+
+  it('RSVPs and chat never change Learn points or rank', () => {
+    communityActions.joinGroup(DEMO_GROUP.id);
+    scoreboardActions.recordFirstAttempt('soccer', 'learn:lesson:a', true);
+    const before = buildGroupBoard(getGuestState(), DEMO_GROUP.id);
+    communityActions.rsvp(DEMO_EVENT.id);
+    postMessage(DEMO_EVENT.id, 'See you there!');
+    communityActions.cancelRsvp(DEMO_EVENT.id);
+    const after = buildGroupBoard(getGuestState(), DEMO_GROUP.id);
+    expect(after.yourPoints).toBe(10);
+    expect(after.rows).toEqual(before.rows);
+  });
+});
+
+describe('matchday chat', () => {
+  beforeEach(() => {
+    localStorage.removeItem(CHAT_STORAGE_KEY);
+    __resetChatCacheForTests();
+  });
+
+  it('ships a demo discussion from the shared demo players and the host', () => {
+    const names = new Set(buildDemoPlayers().map((p) => p.displayName));
+    const msgs = DEMO_CHAT[DEMO_EVENT.id] ?? [];
+    expect(msgs.length).toBeGreaterThanOrEqual(5);
+    for (const m of msgs) {
+      if (m.role === 'fan') expect(names.has(m.author)).toBe(true);
+      else expect(m).toMatchObject({ role: 'host', author: DEMO_GROUP.name });
+    }
+  });
+
+  it('stores the guest’s trimmed messages per event and survives a reload', () => {
+    expect(postMessage(DEMO_EVENT.id, '   ')).toBeNull();
+    postMessage(DEMO_EVENT.id, '  Saving a stool for Sam  ');
+    postMessage('other-event', 'elsewhere');
+    __resetChatCacheForTests(); // reload
+    const own = getOwnMessages(DEMO_EVENT.id);
+    expect(own.map((m) => [m.author, m.role, m.text])).toEqual([['You', 'you', 'Saving a stool for Sam']]);
+    expect(getOwnMessages('other-event')).toHaveLength(1);
+  });
+
+  it('caps message length', () => {
+    postMessage(DEMO_EVENT.id, 'x'.repeat(CHAT_MAX_LENGTH + 50));
+    expect(getOwnMessages(DEMO_EVENT.id)[0]?.text).toHaveLength(CHAT_MAX_LENGTH);
   });
 });

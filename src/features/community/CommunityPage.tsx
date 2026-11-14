@@ -7,7 +7,7 @@ import { DEMO_LOCATION, EVENTS, GROUP, type CommunityEvent } from './content';
 import { countdownLabel, eventShortDateLabel, eventTimeLabel } from './format';
 import { distanceLabel, milesBetween, sortByDistance, useViewerLocation } from './geo';
 import { buildGroupBoard } from './leaderboard';
-import { VenuePicture } from './VenuePicture';
+import { VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
 /** /community: the nearest matchday event first, then the group with its leaderboard. */
@@ -59,8 +59,8 @@ function FeaturedEvent({ event, going }: { event: CommunityEvent; going: boolean
   return (
     <article className={styles.featured}>
       <Link to={to} className={styles.featuredMedia} tabIndex={-1} aria-hidden="true">
-        <VenuePicture venueName={event.venue.name} />
-        <span className={styles.mediaNote}>Illustration</span>
+        <VenuePhoto venueName={event.venue.name} />
+        <span className={styles.mediaNote}>Sample photo</span>
       </Link>
       <div className={styles.featuredBody}>
         <span className={styles.badges}>
@@ -93,6 +93,14 @@ function FeaturedEvent({ event, going }: { event: CommunityEvent; going: boolean
   );
 }
 
+/** Top three get an icon; everyone else shows a plain rank number. */
+const MEDALS = [
+  { icon: '🏆', label: '1st place' },
+  { icon: '🥈', label: '2nd place' },
+  { icon: '🥉', label: '3rd place' },
+] as const;
+const medal = (rank: number) => MEDALS[rank - 1];
+
 function GroupCard({ state }: { state: GuestState }) {
   const member = isMember(state, GROUP.id);
   const board = buildGroupBoard(state, GROUP.id);
@@ -117,13 +125,22 @@ function GroupCard({ state }: { state: GuestState }) {
 
         <div className={styles.board}>
           <div className={styles.boardHead}>
-            <h3 className={styles.boardTitle}>Group leaderboard</h3>
-            <span className={styles.boardNote}>Course points</span>
+            <h3 className={styles.boardTitle}>Learn leaderboard</h3>
+            <span className={styles.boardNote}>Group members</span>
           </div>
+          <p className={styles.boardRule}>
+            Points come only from progress in Learn lessons. Matchdays and RSVPs don’t earn points.
+          </p>
           <ol className={styles.boardList}>
             {board.rows.map((r) => (
               <li key={r.id} className={styles.boardRow} data-you={r.isYou || undefined}>
-                <span className={styles.rank}>{r.rank}</span>
+                <span className={styles.rank}>
+                  {medal(r.rank) ? (
+                    <span role="img" aria-label={medal(r.rank)!.label}>{medal(r.rank)!.icon}</span>
+                  ) : (
+                    r.rank
+                  )}
+                </span>
                 <span className={styles.player}>
                   {r.name}
                   {r.isDemo && <Badge variant="demo">Demo player</Badge>}
