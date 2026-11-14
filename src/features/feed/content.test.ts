@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SEED_POSTS } from '@/shared/fixtures/ids';
-import { quizStory, rankStories, stories } from './content';
+import { quizStory, rankStories, rankStreamStories, stories, streamQuizzes, streamStories } from './content';
 import type { FeedState } from '@/shared/contracts/types';
 
 describe('edition selection', () => {
@@ -13,6 +13,12 @@ describe('edition selection', () => {
     expect(rankStories(['rules', 'tactics'])[0]?.id).toBe(SEED_POSTS[2].id);
     expect(rankStories(['transfers'])).toHaveLength(6);
     expect(rankStories([]).map(p => p.id)).toEqual(SEED_POSTS.map(p => p.id));
+  });
+  it('adds a larger stream catalog and keeps quiz breaks intentionally scarce', () => {
+    expect(streamStories).toHaveLength(10);
+    expect(streamQuizzes).toHaveLength(2);
+    expect(rankStreamStories(['tactics'])).toHaveLength(10);
+    expect(new Set(streamStories.map(post => post.id)).size).toBe(streamStories.length);
   });
   it('requires two known distinct stories and asks about an actually read story', () => {
     const feed: FeedState = { views: {}, quizzes: {}, picks: {} };

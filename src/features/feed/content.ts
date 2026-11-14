@@ -57,16 +57,58 @@ const entries: Omit<Story, 'id' | 'sourceUrl'>[] = [
     title: 'Orlando vs Cincinnati: make your call.', category: 'Next on your calendar', date: '2026-11-19', publisher: 'MLS',
     tags: ['strategy', 'tournaments', 'previews', 'news'], stat: 'NOV 19', caption: 'The next matchday conversation', preview: true,
     summary: 'Our November 14 demo edition looks ahead to Orlando City–FC Cincinnati. Explore the matchup, then save your own prediction.',
-    paragraphs: ['Demo fixture: Orlando City vs FC Cincinnati, November 19, 2026. This pairing and date come from the supplied demo brief. The linked MLS schedule is the primary reference to check before making real matchday plans; we have not independently confirmed this fixture.', 'No result, confirmed lineup or kickoff time is asserted here. The promoted watch party’s 7:00 PM ET time is its fictional doors-open time, not an official kickoff.'],
+    paragraphs: ['MLS lists Orlando City SC hosting FC Cincinnati in the Eastern Conference Wild Card match on November 19, 2026, at 7:30 PM ET at Inter.co Stadium. The winner advances to face Nashville SC in the Round One Best-of-3 Series.', 'Those are the schedule facts; the result is still to come in this November 14 edition. Our promoted watch party is fictional and opens its doors at 7:00 PM ET, 30 minutes before the listed kickoff.'],
     take: 'Watch who controls the space after losing possession. Our editorial question: can Orlando protect the middle while still committing players forward?',
     question: 'Which matchup is this demo preview about?', options: ['Miami vs Cruz Azul', 'Liverpool vs Barcelona', 'Orlando City vs FC Cincinnati'], correct: 2,
     explanation: 'The demo preview pairs Orlando City with FC Cincinnati on November 19.',
   },
 ];
 export const stories: Story[] = SEED_POSTS.map((seed, i) => ({ ...seed, ...entries[i]! }));
+/** Extra short-form posts for the endless media stream. They deliberately stay feature-local. */
+export const streamStories: Story[] = [
+  ...stories,
+  {
+    id: 'liverpool-barcelona-four-goals-video', sourceUrl: 'https://www.youtube.com/watch?v=27GHT7nAF8A', title: 'Four goals. Zero second chances.',
+    category: 'Full-time rewind', date: '2019-05-07', publisher: 'UEFA', tags: ['tactics', 'club-history', 'match-moments'], stat: '4–0', caption: 'Liverpool complete the turnaround',
+    summary: 'Watch the goals from the night Liverpool flipped a three-goal deficit into a place in the final.',
+    paragraphs: ['UEFA’s official highlights collect Liverpool’s four goals against Barcelona at Anfield.', 'The score changed the aggregate from 3–0 Barcelona to 4–3 Liverpool. The quick corner was the final twist, but the comeback was built across the full match.'],
+    take: 'Comebacks rarely happen in one play. Watch how the pressure compounds before the famous corner.', question: 'What did Liverpool need to reach the final?', options: ['One goal', 'Four goals', 'A penalty shootout'], correct: 1, explanation: 'After losing the first leg 3–0, Liverpool needed four goals to progress.'
+  },
+  {
+    id: 'brazil-germany-seven-one-video', sourceUrl: 'https://www.youtube.com/watch?v=aE4BdIP6bvc', title: 'The six minutes that changed a semifinal.',
+    category: 'World Cup rewind', date: '2014-07-08', publisher: 'FIFA', tags: ['tournaments', 'statistics', 'history'], stat: '1–7', caption: 'Brazil vs Germany · 2014 semifinal',
+    summary: 'Germany scored four times in six first-half minutes against Brazil. The official highlights make the tempo of the collapse impossible to miss.',
+    paragraphs: ['Germany beat Brazil 7–1 in the 2014 FIFA World Cup semifinal in Belo Horizonte.', 'The score was 5–0 after 29 minutes. FIFA’s extended highlights show how quickly the match moved from tension to disbelief.'],
+    take: 'When one team loses its distances after conceding, the next attack can arrive before anyone resets.', question: 'How many goals did Germany score?', options: ['Five', 'Seven', 'Nine'], correct: 1, explanation: 'Germany won the semifinal 7–1.'
+  },
+  {
+    id: 'argentina-france-2022-final-video', sourceUrl: 'https://www.youtube.com/watch?v=IipmpVcISXE', title: 'A final that refused to end.',
+    category: 'World Cup rewind', date: '2022-12-18', publisher: 'FIFA', tags: ['tournaments', 'players', 'match-moments'], stat: '3–3', caption: 'Argentina vs France · 2022 final',
+    summary: 'Messi, Mbappé and a finish that went all the way to penalties. This is the official FIFA highlight reel.',
+    paragraphs: ['Argentina and France drew 3–3 after extra time in the 2022 FIFA World Cup final.', 'Argentina won the penalty shootout 4–2. FIFA’s official highlights track the shifts in momentum from Argentina’s early lead to France’s comeback.'],
+    take: 'The scoreboard can change faster than a team’s mentality. Pay attention to who still wants the ball after a momentum swing.', question: 'How was the 2022 final decided?', options: ['Golden goal', 'Penalty shootout', 'Replay'], correct: 1, explanation: 'Argentina won the shootout 4–2 after a 3–3 draw.'
+  },
+  {
+    id: 'maradona-eight-minutes-video', sourceUrl: 'https://www.youtube.com/watch?v=FRAbNlPS2MI', title: 'Eight minutes, two football myths.',
+    category: 'FIFA archive', date: '1986-06-22', publisher: 'FIFA', tags: ['history', 'players', 'club-history'], stat: '2–1', caption: 'Maradona against England',
+    summary: 'The official FIFA film puts the disputed goal and the solo run together, exactly as the match unfolded.',
+    paragraphs: ['Argentina beat England 2–1 in their 1986 World Cup quarterfinal.', 'FIFA’s film revisits the two Maradona goals: the first was controversial for the handball, while the second was a solo dribble through England’s defense.'],
+    take: 'A highlight can be beautiful and complicated at the same time. Let the clip give you the sequence; keep the context too.', question: 'Which came second in this match?', options: ['The solo dribble goal', 'The handball goal', 'A penalty'], correct: 0, explanation: 'The solo run followed the controversial handball goal.'
+  },
+];
+
+export interface FeedQuiz {
+  id: string; title: string; prompt: string; options: [string, string, string]; correct: number; explanation: string;
+}
+/** Two optional breaks per session, positioned only after every third video. */
+export const streamQuizzes: FeedQuiz[] = [
+  { id: 'feed-reel-quiz-restarts', title: 'Quick break · 1 question', prompt: 'Why was Liverpool’s quick corner so effective?', options: ['Barcelona had not reset', 'The ball was out', 'It was a penalty'], correct: 0, explanation: 'The defenders were not set when Alexander-Arnold took the corner.' },
+  { id: 'feed-reel-quiz-momentum', title: 'Quick break · 1 question', prompt: 'What is a useful cue after a momentum swing?', options: ['Who wants the ball next', 'The crowd volume only', 'The kit color'], correct: 0, explanation: 'The next player willing to receive can reveal whether a team is still composed.' },
+];
 export const editionQuizId = 'feed-quiz:2026-11-14';
 export const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 export const rankStories = (interests: InterestId[]) => [...stories].sort((a, b) => b.tags.filter(tag => interests.some(i => i === tag)).length - a.tags.filter(tag => interests.some(i => i === tag)).length);
+export const rankStreamStories = (interests: InterestId[]) => [...streamStories].sort((a, b) => b.tags.filter(tag => interests.some(i => i === tag)).length - a.tags.filter(tag => interests.some(i => i === tag)).length);
 export function quizStory(feed: FeedState) {
   const read = Object.values(feed.views).filter(view => stories.some(post => post.id === view.postId));
   if (read.length < 2) return undefined;

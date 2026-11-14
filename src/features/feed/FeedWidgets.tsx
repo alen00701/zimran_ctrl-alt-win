@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DEMO_MATCH_ID, exerciseId } from '@/shared/fixtures/ids';
 import { feedActions, scoreboardActions, useGuestState } from '@/shared/state';
 import { Badge, Button, Card, CoachPrompt, OptionCard } from '@/shared/ui';
+import { routes } from '@/shared/routes';
 import { editionQuizId, quizStory } from './content';
 import styles from './Feed.module.css';
 
@@ -36,12 +37,13 @@ export function MatchPick() {
     <p role="status" className={styles.meta}>{pick ? `Saved: ${pick === 'home' ? 'Orlando City' : pick === 'away' ? 'FC Cincinnati' : 'Draw'}. Change your pick anytime.` : 'Choose to save on this device. This is your opinion, not a match result or a wager.'}</p>
   </Card>;
 }
-export function ShareStory() {
+export function ShareStory({ postId }: { postId?: string }) {
   const [message, setMessage] = useState('');
   return <div className={styles.stack}>
     <Button variant="secondary" onClick={async () => {
-      try { await navigator.clipboard.writeText(window.location.href); setMessage('Story link copied.'); }
-      catch { setMessage(`Copy this link: ${window.location.href}`); }
+      const url = postId ? new URL(routes.feedPost(postId), window.location.origin).href : window.location.href;
+      try { await navigator.clipboard.writeText(url); setMessage('Story link copied.'); }
+      catch { setMessage(`Copy this link: ${url}`); }
     }}>Copy story link</Button>
     {message && <p role="status" className={styles.share}>{message}</p>}
   </div>;

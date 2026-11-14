@@ -21,7 +21,7 @@ export function FeedPostPage() {
     <PageHeader eyebrow={`${post.category} · November 14, 2026 edition`} title={post.title} subtitle={post.summary} />
     <p className={styles.meta}>The Touchline Desk · Fictional editorial publisher<br />Event: <time dateTime={post.date}>{dateLabel(post.date)}</time> · Source publisher: {post.publisher}</p>
     <ShareStory key={post.id} />
-    <section className={styles.stack}><h2>{post.preview ? 'Demo fixture & source status' : 'What happened'}</h2>{post.paragraphs.map(p => <p key={p}>{p}</p>)}<a href={post.sourceUrl} target="_blank" rel="noreferrer">Read the original source at {post.publisher} ↗</a></section>
+    <section className={styles.stack}><h2>{post.preview ? 'Confirmed schedule' : 'What happened'}</h2>{post.paragraphs.map(p => <p key={p}>{p}</p>)}<a href={post.sourceUrl} target="_blank" rel="noreferrer">Read the original source at {post.publisher} ↗</a></section>
     {post.clip && <Card variant="inverse" className={styles.stack}><Badge>Official match footage</Badge><h2>See the split-second opening.</h2><p>UEFA’s match page includes footage and a link to the full replay. The original page and replay link were checked on November 14, 2026. Playback may require UEFA sign-in or depend on your region.</p><a className={styles.watch} href={post.sourceUrl} target="_blank" rel="noreferrer">▶ Watch the original ↗</a></Card>}
     <Card variant="subtle" className={styles.stack}><Badge>Editorial perspective</Badge><h2>What to watch for</h2><p>{post.take}</p></Card>
     {post.clip && <Reconstruction />}
