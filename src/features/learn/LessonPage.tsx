@@ -1,62 +1,59 @@
-import { useEffect } from 'react';
-import { useParams } from 'react-router';
-import { SEED_LESSON_IDS } from '@/shared/fixtures/ids';
-import { courseActions, isLessonUnlocked, useGuestSlice } from '@/shared/state';
+import { Navigate, useParams } from 'react-router';
+import { isLessonUnlocked, useGuestSlice } from '@/shared/state';
 import { routes } from '@/shared/routes';
-import { Button, ButtonLink, CoachPrompt, PageHeader, ProgressBar } from '@/shared/ui';
-import styles from './Learn.module.css';
+import { ButtonLink, CoachPrompt, PageHeader } from '@/shared/ui';
+import { getLesson } from './catalog';
+import { getDrill, RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ_ID } from './catalog/rulesBasics';
+import { BlockQuizPage } from './BlockQuizPage';
+import { DrillPage } from './DrillPage';
+import { readRules } from './logic/path';
+import { LessonPlayer } from './LessonPlayer';
+import { MembershipCard } from './MembershipCard';
+import styles from './Lesson.module.css';
 
-const STEPS = 3;
-const humanize = (id: string) => id.replace(/-/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
-
-/** STARTER: demonstrates resume-at-step, completion and the paywall contract. */
+/** /learn/:lessonId — unknown IDs, the paywall and the lesson itself. */
 export function LessonPage() {
   const { lessonId = '' } = useParams();
   const course = useGuestSlice('course');
-  const known = (SEED_LESSON_IDS as readonly string[]).includes(lessonId);
-  const unlocked = known && isLessonUnlocked(course, lessonId);
-  const progress = course.lessons[lessonId];
+  const lesson = getLesson(lessonId);
+  const drill = getDrill(lessonId);
 
-  useEffect(() => {
-    if (known && unlocked) courseActions.openLesson(lessonId, humanize(lessonId));
-  }, [known, unlocked, lessonId]);
+  // Rules basics block: drills, block quiz, and the block ID itself (used by Account's "Resume").
+  if (drill) return <DrillPage key={drill.id} drill={drill} />;
+  if (lessonId === RULES_QUIZ_ID) return <BlockQuizPage />;
+  if (lessonId === RULES_BLOCK_ID) {
+    const rules = readRules(course);
+    const nextDrill = RULES_DRILLS.find((d) => !rules.done.has(d.id));
+    const to = nextDrill ? routes.lesson(nextDrill.id) : rules.passed ? `${routes.learn()}?level=beginner` : routes.lesson(RULES_QUIZ_ID);
+    return <Navigate to={to} replace />;
+  }
 
-  if (!known) {
+  if (!lesson) {
     return (
       <div className={styles.stack}>
-        <CoachPrompt headingLevel={1} state="thinking">That lesson isn’t in the playbook yet.</CoachPrompt>
+        <CoachPrompt headingLevel={1} state="thinking">
+          That lesson isn’t in the playbook yet.
+        </CoachPrompt>
         <ButtonLink to={routes.learn()}>Back to Learn</ButtonLink>
       </div>
     );
   }
-  if (!unlocked) {
+
+  if (!isLessonUnlocked(course, lesson.id)) {
+    const started = Boolean(course.lessons[lesson.id]);
     return (
       <div className={styles.stack}>
-        <PageHeader title={humanize(lessonId)} eyebrow="Members lesson" />
-        <CoachPrompt>You’ve finished your two free lessons. Membership unlocks this one.</CoachPrompt>
-        <Button onClick={courseActions.startDemoMembership}>Try membership demo · No charge</Button>
+        <PageHeader eyebrow="Members lesson" title={lesson.title} subtitle={lesson.summary} />
+        <CoachPrompt>
+          {started ? 'Your progress in this lesson is saved. Unlock it to pick up where you stopped.' : 'This one is part of membership. Your first two lessons were on the house.'}
+        </CoachPrompt>
+        <MembershipCard lesson={lesson} completedCount={course.completedLessonIds.length} />
+        <ButtonLink to={routes.learn()} variant="ghost">
+          ← Back to Learn
+        </ButtonLink>
       </div>
     );
   }
-  const step = progress?.currentStep ?? 0;
-  const done = Boolean(progress?.completedAt);
-  return (
-    <div className={styles.stack}>
-      <PageHeader title={humanize(lessonId)} eyebrow={`Step ${Math.min(step + 1, STEPS)} of ${STEPS}`} />
-      <ProgressBar value={done ? 1 : step / STEPS} label="Lesson progress" />
-      {done ? (
-        <CoachPrompt state="celebrate" tone="success">Lesson complete. Nice read!</CoachPrompt>
-      ) : (
-        <CoachPrompt>Starter step {step + 1}. The Learn owner adds the story, interaction and quiz.</CoachPrompt>
-      )}
-      <div className={styles.row}>
-        {step > 0 && !done && (
-          <Button variant="secondary" onClick={() => courseActions.setStep(lessonId, step - 1)}>Back</Button>
-        )}
-        {!done && step < STEPS - 1 && <Button onClick={() => courseActions.setStep(lessonId, step + 1)}>Next</Button>}
-        {!done && step === STEPS - 1 && <Button onClick={() => courseActions.completeLesson(lessonId)}>Complete lesson</Button>}
-        {done && <ButtonLink to={routes.learn()}>Back to Learn</ButtonLink>}
-      </div>
-    </div>
-  );
+
+  return <LessonPlayer key={lesson.id} lesson={lesson} />;
 }

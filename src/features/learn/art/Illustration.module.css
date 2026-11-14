@@ -1,0 +1,90 @@
+.figure {
+  margin: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  line-height: 0;
+  background: var(--color-surface-brand);
+  box-shadow: 0 var(--lip-size) 0 var(--color-accent-pressed);
+}
+.figure[data-size='sm'] { max-width: 360px; }
+.svg { display: block; width: 100%; height: auto; }
+
+.bg { fill: var(--color-surface-brand); }
+.field { fill: var(--color-accent-pressed); }
+.line { fill: none; stroke: var(--color-text-on-brand-soft); stroke-width: 2; opacity: 0.55; }
+.lineStrong { fill: none; stroke: var(--color-surface); stroke-width: 3; }
+.divider { stroke: var(--color-text-on-brand-soft); stroke-width: 1.5; opacity: 0.4; }
+.net { fill: var(--color-accent-pressed); }
+.post { fill: none; stroke: var(--color-surface); stroke-width: 4; stroke-linejoin: round; }
+.flag { fill: var(--color-sponsored-subtle); stroke: var(--color-surface); stroke-width: 2.5; stroke-linejoin: round; }
+.spot { fill: var(--color-surface); }
+.offLine { stroke: var(--color-sponsored-subtle); stroke-width: 2.5; stroke-dasharray: 6 5; }
+.measure { stroke: var(--color-sponsored-subtle); stroke-width: 2; stroke-dasharray: 4 3; }
+
+/* players */
+.p-a { fill: var(--color-surface); stroke: var(--color-surface-inverse); stroke-width: 2.5; }
+.p-b { fill: var(--color-surface-inverse); stroke: var(--color-surface); stroke-width: 2; }
+.p-gk { fill: var(--color-sponsored-subtle); stroke: var(--color-surface-inverse); stroke-width: 2.5; }
+.p-ref { fill: var(--color-surface-inverse); stroke: var(--color-sponsored-subtle); stroke-width: 2; }
+.fig-a, .fig-b, .fig-ref { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.fig-a { stroke: var(--color-surface); }
+.fig-a circle { fill: var(--color-surface); }
+.fig-b, .fig-ref { stroke: var(--color-surface-inverse); }
+.fig-b circle, .fig-ref circle { fill: var(--color-surface-inverse); }
+.turn { fill: none; stroke: var(--color-surface); stroke-width: 2; opacity: 0.7; }
+
+.ball { fill: var(--color-surface); stroke: var(--color-surface-inverse); stroke-width: 1.5; }
+.ballDot { fill: var(--color-surface-inverse); }
+.markBg { fill: var(--color-surface); }
+.good, .bad { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.good { stroke: var(--color-success); }
+.bad { stroke: var(--color-danger); }
+
+/* text */
+.tag, .label-sm, .label-md, .label-lg {
+  fill: var(--color-text-on-brand);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-bold);
+}
+.tag { font-size: 10px; text-anchor: middle; }
+.label-sm { font-size: 11px; font-weight: var(--weight-medium); }
+.label-md { font-size: 14px; }
+.label-lg { font-size: 22px; font-weight: var(--weight-heavy); }
+
+/* arrows */
+.arrow-light path, .arrow-hl path, .arrow-dark path { fill: none; stroke-width: 2.6; stroke-linecap: round; }
+.arrow-light path { stroke: var(--color-surface); }
+.arrow-light polygon { fill: var(--color-surface); }
+.arrow-hl path { stroke: var(--color-sponsored-subtle); }
+.arrow-hl polygon { fill: var(--color-sponsored-subtle); }
+.arrow-dark path { stroke: var(--color-surface-inverse); }
+.arrow-dark polygon { fill: var(--color-surface-inverse); }
+
+/* lanes / runs */
+.laneOpen { stroke: var(--color-success-subtle); stroke-width: 4; stroke-linecap: round; }
+.laneBlocked { stroke: var(--color-danger-subtle); stroke-width: 3; stroke-dasharray: 6 6; }
+.run { fill: none; stroke: var(--color-sponsored-subtle); stroke-width: 3; stroke-dasharray: 2 6; stroke-linecap: round; }
+.bracket { fill: none; stroke: var(--color-surface); stroke-width: 2.5; }
+
+/* boards and objects */
+.board { fill: var(--color-surface-inverse); }
+.boardHl { fill: var(--color-surface); }
+.boardLine { fill: none; stroke: var(--color-text-on-inverse); stroke-width: 1.5; opacity: 0.35; }
+.digits { fill: var(--color-text-on-inverse); font-family: var(--font-sans); font-size: 40px; font-weight: var(--weight-heavy); text-anchor: middle; font-variant-numeric: tabular-nums; }
+.subBoard { fill: var(--color-sponsored-subtle); }
+.subDigits { fill: var(--color-surface-inverse); font-family: var(--font-sans); font-size: 22px; font-weight: var(--weight-heavy); text-anchor: middle; }
+.rowLabel, .rowLabelDark { font-family: var(--font-sans); font-size: 13px; font-weight: var(--weight-bold); }
+.rowScore, .rowScoreDark { font-family: var(--font-sans); font-size: 15px; font-weight: var(--weight-heavy); text-anchor: end; }
+.rowLabel, .rowScore { fill: var(--color-text-on-inverse); }
+.rowLabelDark, .rowScoreDark { fill: var(--color-surface-inverse); }
+.chalk { fill: var(--color-text-on-inverse); font-family: var(--font-sans); font-size: 30px; font-weight: var(--weight-bold); text-anchor: middle; }
+.chalkCircle { fill: none; stroke: var(--color-text-on-inverse); stroke-width: 3; }
+.card-yellow { fill: var(--color-sponsored-subtle); stroke: var(--color-sponsored); stroke-width: 3; }
+.card-red { fill: var(--color-danger); stroke: var(--color-danger-pressed); stroke-width: 3; }
+.shield { fill: var(--color-surface); stroke: var(--color-surface-inverse); stroke-width: 2.5; }
+.shieldText { fill: var(--color-surface-inverse); font-family: var(--font-sans); font-size: 15px; font-weight: var(--weight-heavy); text-anchor: middle; }
+.trophy { fill: var(--color-sponsored-subtle); stroke: var(--color-sponsored); stroke-width: 2; }
+.trophyLine { fill: none; stroke: var(--color-sponsored-subtle); stroke-width: 4; }
+.star { fill: var(--color-sponsored-subtle); }
+.shirt { fill: var(--color-surface); stroke: var(--color-surface-inverse); stroke-width: 3; stroke-linejoin: round; }
+.shirtNumber { fill: var(--color-accent); font-family: var(--font-sans); font-size: 52px; font-weight: var(--weight-heavy); text-anchor: middle; }
