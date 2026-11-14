@@ -5,6 +5,7 @@ import { communityActions, getGuestState, goingEventIds, isGoing, isMember, scor
 import { __setBackendForTests } from '@/shared/state/storage';
 import { DEMO_LOCATION, EVENTS, GROUP, PLAY_DAY, PLAY_DAY_ID, eventsOfKind, findEvent } from './content';
 import { DEMO_FRIENDS, friendsGoingLabel, initials } from './friends';
+import { STORE_CATEGORIES, STORE_ITEMS, appDiscountPercent, formatUsd, itemsIn } from './store';
 import { distanceLabel, milesBetween, sortByDistance } from './geo';
 import { buildLeagueBoard, coursePoints, leagueWeek, timeLeftLabel } from './leaderboard';
 import { CHAT_MAX_LENGTH, CHAT_STORAGE_KEY, DEMO_CHAT, __resetChatCacheForTests, getOwnMessages, postMessage } from './chat';
@@ -250,5 +251,23 @@ describe('matchday chat', () => {
   it('caps message length', () => {
     postMessage(DEMO_EVENT.id, 'x'.repeat(CHAT_MAX_LENGTH + 50));
     expect(getOwnMessages(DEMO_EVENT.id)[0]?.text).toHaveLength(CHAT_MAX_LENGTH);
+  });
+});
+
+describe('store', () => {
+  it('has tickets, merch and gear, each with a real app discount', () => {
+    for (const c of STORE_CATEGORIES) expect(itemsIn(c.id).length).toBeGreaterThanOrEqual(3);
+    for (const i of STORE_ITEMS) {
+      expect(i.appPriceCents).toBeLessThan(i.listPriceCents);
+      expect(appDiscountPercent(i)).toBeGreaterThan(0);
+      expect(i.partner).toBeTruthy();
+    }
+    expect(new Set(STORE_ITEMS.map((i) => i.id)).size).toBe(STORE_ITEMS.length);
+  });
+
+  it('formats prices and discounts', () => {
+    expect(formatUsd(3900)).toBe('$39');
+    expect(formatUsd(1950)).toBe('$19.50');
+    expect(appDiscountPercent({ ...STORE_ITEMS[0]!, listPriceCents: 3500, appPriceCents: 2800 })).toBe(20);
   });
 });
