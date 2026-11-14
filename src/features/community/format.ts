@@ -7,18 +7,13 @@ const fmt = (iso: string, timeZone: string, opts: Intl.DateTimeFormatOptions) =>
 export const eventDateLabel = (iso: string, timeZone: string) =>
   fmt(iso, timeZone, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
+/** "Thu, Nov 19" in the venue's zone. */
+export const eventShortDateLabel = (iso: string, timeZone: string) =>
+  fmt(iso, timeZone, { weekday: 'short', month: 'short', day: 'numeric' });
+
 /** "7:00 PM EST" in the venue's zone. */
 export const eventTimeLabel = (iso: string, timeZone: string) =>
   fmt(iso, timeZone, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
-
-/** Parts for a calendar tile: { month: "NOV", day: "19", weekday: "THU" }. */
-export function eventDateTile(iso: string, timeZone: string) {
-  return {
-    month: fmt(iso, timeZone, { month: 'short' }).toUpperCase(),
-    day: fmt(iso, timeZone, { day: 'numeric' }),
-    weekday: fmt(iso, timeZone, { weekday: 'short' }).toUpperCase(),
-  };
-}
 
 export function currentTimeZone(): string | null {
   try {

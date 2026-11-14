@@ -12,12 +12,19 @@ export interface CommunityGroup {
   name: string;
   city: string;
   tagline: string;
-  description: string;
-  /** What joining gives you inside the app. */
-  perks: string[];
-  houseRules: string[];
   eventIds: string[];
 }
+
+export interface Coords {
+  lat: number;
+  lon: number;
+}
+
+/** Where the demo looks for matchdays until the visitor shares a location. */
+export const DEMO_LOCATION: { label: string; coords: Coords } = {
+  label: 'Orlando, FL',
+  coords: { lat: 28.5384, lon: -81.3789 },
+};
 
 export interface CommunityEvent {
   id: string;
@@ -38,6 +45,8 @@ export interface CommunityEvent {
     name: string;
     area: string;
     city: string;
+    /** Approximate (city-center) point for the fictional venue; used only for "near you" distance. */
+    coords: Coords;
     /** The venue pays for placement in the business concept. */
     sponsored: true;
     fictional: true;
@@ -57,18 +66,6 @@ export const GROUP: CommunityGroup = {
   name: DEMO_GROUP.name,
   city: 'Orlando, FL',
   tagline: 'Watch together. Ask anything.',
-  description:
-    'A fan-run group for people around Orlando who like watching soccer with company. New to the game? Sit with us. Someone at the table will happily explain why that goal was offside.',
-  perks: [
-    'Get matchday watch parties first',
-    'See which fans are going before you head out',
-    'Your groups and RSVPs show up on your Account',
-  ],
-  houseRules: [
-    'Every question is a good question',
-    'Cheer for your team, not against people',
-    'No spoilers for fans watching on delay',
-  ],
   eventIds: [DEMO_EVENT.id],
 };
 
@@ -89,6 +86,7 @@ export const EVENTS: CommunityEvent[] = [
       name: DEMO_EVENT.venueName,
       area: 'Downtown',
       city: DEMO_EVENT.city,
+      coords: DEMO_LOCATION.coords,
       sponsored: true,
       fictional: true,
     },

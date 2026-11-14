@@ -1,100 +1,145 @@
 import { Link } from 'react-router';
+import type { GuestState } from '@/shared/contracts/types';
 import { communityActions, isGoing, isMember, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
-import { Badge, Button, Card, PageHeader } from '@/shared/ui';
-import { EVENTS, GROUP, type CommunityEvent } from './content';
-import { countdownLabel, eventDateTile, eventTimeLabel } from './format';
+import { Badge, Button, ButtonLink, Card, PageHeader } from '@/shared/ui';
+import { DEMO_LOCATION, EVENTS, GROUP, type CommunityEvent } from './content';
+import { countdownLabel, eventShortDateLabel, eventTimeLabel } from './format';
+import { distanceLabel, milesBetween, sortByDistance, useViewerLocation } from './geo';
+import { buildGroupBoard } from './leaderboard';
+import { VenuePicture } from './VenuePicture';
 import styles from './Community.module.css';
 
-/** /community: the demo group (join/leave) and its upcoming matchday events. */
+/** /community: the nearest matchday event first, then the group with its leaderboard. */
 export function CommunityPage() {
   const state = useGuestState();
-  const member = isMember(state, GROUP.id);
-  const events = EVENTS.filter((e) => GROUP.eventIds.includes(e.id));
+  const viewer = useViewerLocation();
+  const [featured, ...others] = sortByDistance(EVENTS, viewer.coords ?? DEMO_LOCATION.coords);
 
   return (
     <>
-      <PageHeader title="Community" subtitle="Find your people for matchday." />
+      <PageHeader title="Community" subtitle="Matchday near you" />
       <div className={styles.stack}>
-        <section id={`group-${GROUP.id}`} aria-labelledby="group-title" className={styles.section}>
-          <Card variant="brand" className={styles.groupHero}>
-            <div className={styles.badges}>
-              <Badge variant="inverse">Demo group</Badge>
-              {member && <Badge variant="success">Member</Badge>}
-            </div>
-            <h2 id="group-title" className={styles.groupName}>{GROUP.name}</h2>
-            <p className={styles.groupMeta}>{GROUP.city} · {GROUP.tagline}</p>
-            <p className={styles.groupText}>{GROUP.description}</p>
-            <div className={styles.actions}>
-              {member ? (
-                <Button variant="inverse" onClick={() => communityActions.leaveGroup(GROUP.id)}>
-                  Leave group
-                </Button>
-              ) : (
-                <Button variant="inverse" onClick={() => communityActions.joinGroup(GROUP.id)}>
-                  Join group
-                </Button>
-              )}
-            </div>
-            <p className={styles.status} role="status">
-              {member ? 'You’re in. This group now shows on your Account.' : ''}
-            </p>
-          </Card>
-
-          <div className={styles.twoUp}>
-            <Card>
-              <h3 className={styles.h3}>Why join</h3>
-              <ul className={styles.checks}>
-                {GROUP.perks.map((p) => <li key={p}>{p}</li>)}
-              </ul>
-            </Card>
-            <Card>
-              <h3 className={styles.h3}>House rules</h3>
-              <ul className={styles.checks}>
-                {GROUP.houseRules.map((r) => <li key={r}>{r}</li>)}
-              </ul>
-            </Card>
-          </div>
+        <section aria-labelledby="nearby-title" className={styles.section}>
+          <h2 id="nearby-title" className="visually-hidden">Nearest watch party</h2>
+          <p className={styles.locationRow}>
+            <span role="status">
+              <span aria-hidden="true">📍 </span>
+              {viewer.status === 'ready' && featured
+                ? `${distanceLabel(milesBetween(viewer.coords, featured.venue.coords))} · ${featured.venue.city}`
+                : viewer.status === 'locating'
+                  ? 'Finding you…'
+                  : viewer.status === 'unavailable'
+                    ? `Couldn’t get your location. Showing ${DEMO_LOCATION.label}.`
+                    : `Showing ${DEMO_LOCATION.label}`}
+            </span>
+            {viewer.status !== 'ready' && viewer.status !== 'locating' && (
+              <button type="button" className={styles.linkButton} onClick={viewer.request}>
+                {viewer.status === 'unavailable' ? 'Try again' : 'Use my location'}
+              </button>
+            )}
+          </p>
+          {featured && <FeaturedEvent event={featured} going={isGoing(state, featured.id)} />}
+          {others.map((e) => (
+            <Link key={e.id} to={routes.event(e.id)} className={styles.moreEvent}>
+              {e.title} · {eventTimeLabel(e.startsAt, e.timeZone)} · {e.venue.name}
+            </Link>
+          ))}
         </section>
 
-        <section aria-labelledby="events-title" className={styles.section}>
-          <h2 id="events-title" className={styles.h2}>Upcoming watch parties</h2>
-          <ul className={styles.list}>
-            {events.map((e) => (
-              <li key={e.id}>
-                <EventCard event={e} going={isGoing(state, e.id)} />
-              </li>
-            ))}
-          </ul>
-        </section>
+        <GroupCard state={state} />
       </div>
     </>
   );
 }
 
-function EventCard({ event, going }: { event: CommunityEvent; going: boolean }) {
-  const tile = eventDateTile(event.startsAt, event.timeZone);
+function FeaturedEvent({ event, going }: { event: CommunityEvent; going: boolean }) {
   const countdown = countdownLabel(event.startsAt, event.timeZone);
+  const to = routes.event(event.id);
   return (
-    <Link to={routes.event(event.id)} className={styles.eventCard}>
-      <span className={styles.dateTile} aria-hidden="true">
-        <span className={styles.tileMonth}>{tile.month}</span>
-        <span className={styles.tileDay}>{tile.day}</span>
-        <span className={styles.tileWeekday}>{tile.weekday}</span>
-      </span>
-      <span className={styles.eventBody}>
+    <article className={styles.featured}>
+      <Link to={to} className={styles.featuredMedia} tabIndex={-1} aria-hidden="true">
+        <VenuePicture venueName={event.venue.name} />
+        <span className={styles.mediaNote}>Illustration</span>
+      </Link>
+      <div className={styles.featuredBody}>
         <span className={styles.badges}>
           <Badge variant="demo">Demo event</Badge>
           <Badge variant="sponsored">Sponsored venue</Badge>
-          {going && <Badge variant="success">You’re going</Badge>}
         </span>
-        <span className={styles.eventTitle}>{event.title}</span>
-        <span className={styles.eventMeta}>
+        <h3 className={styles.featuredTitle}>
+          <Link to={to}>{event.title}</Link>
+        </h3>
+        <p className={styles.featuredMeta}>
           {countdown ? `${countdown} · ` : ''}
-          {eventTimeLabel(event.startsAt, event.timeZone)} · {event.venue.name}, {event.venue.city} · {event.priceLabel}
-        </span>
-      </span>
-      <span className={styles.chevron} aria-hidden="true">›</span>
-    </Link>
+          {eventShortDateLabel(event.startsAt, event.timeZone)} · {eventTimeLabel(event.startsAt, event.timeZone)} ·{' '}
+          {event.venue.name} · <strong>{event.priceLabel}</strong>
+        </p>
+        <div className={styles.actions}>
+          {going ? (
+            <>
+              <Badge variant="success">You’re going</Badge>
+              <ButtonLink to={to} variant="secondary">View your RSVP</ButtonLink>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => communityActions.rsvp(event.id)}>I’m going</Button>
+              <ButtonLink to={to} variant="ghost">Details</ButtonLink>
+            </>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function GroupCard({ state }: { state: GuestState }) {
+  const member = isMember(state, GROUP.id);
+  const board = buildGroupBoard(state, GROUP.id);
+  return (
+    <section id={`group-${GROUP.id}`} aria-labelledby="group-title">
+      <Card className={styles.group}>
+        <div className={styles.groupHead}>
+          <div className={styles.groupText}>
+            <span className={styles.badges}>
+              <Badge variant="demo">Demo group</Badge>
+              {member && <Badge variant="success">Member</Badge>}
+            </span>
+            <h2 id="group-title" className={styles.groupName}>{GROUP.name}</h2>
+            <p className={styles.muted}>{GROUP.city} · {GROUP.tagline}</p>
+          </div>
+          {member ? (
+            <Button variant="secondary" onClick={() => communityActions.leaveGroup(GROUP.id)}>Leave group</Button>
+          ) : (
+            <Button onClick={() => communityActions.joinGroup(GROUP.id)}>Join group</Button>
+          )}
+        </div>
+
+        <div className={styles.board}>
+          <div className={styles.boardHead}>
+            <h3 className={styles.boardTitle}>Group leaderboard</h3>
+            <span className={styles.boardNote}>Course points</span>
+          </div>
+          <ol className={styles.boardList}>
+            {board.rows.map((r) => (
+              <li key={r.id} className={styles.boardRow} data-you={r.isYou || undefined}>
+                <span className={styles.rank}>{r.rank}</span>
+                <span className={styles.player}>
+                  {r.name}
+                  {r.isDemo && <Badge variant="demo">Demo player</Badge>}
+                </span>
+                <span className={styles.points}>{r.points} pts</span>
+              </li>
+            ))}
+          </ol>
+          <p className={styles.boardFoot} role="status">
+            {board.you
+              ? `You’re #${board.you.rank} with ${board.yourPoints} pts from Learn lessons. `
+              : `You have ${board.yourPoints} pts from Learn lessons. Join the group to get on the board. `}
+            <Link to={routes.learn()}>Earn points in Learn →</Link>
+          </p>
+        </div>
+      </Card>
+    </section>
   );
 }
