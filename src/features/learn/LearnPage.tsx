@@ -8,7 +8,7 @@ import { Badge, ButtonLink, Card, ProgressBar, usePageTitle } from '@/shared/ui'
 import { CATALOG } from './catalog';
 import { getDrill, RULES_QUIZ_ID } from './catalog/rulesBasics';
 import { useRecommendations } from './hooks';
-import { buildPath, defaultLevel, isDifficulty, readRules, RULES_LOCK, rulesRequired, streakDays, type ViewNode } from './logic/path';
+import { buildPath, defaultLevel, isDifficulty, readRules, rulesRequired, streakDays, type ViewNode } from './logic/path';
 import { MembershipCard } from './MembershipCard';
 import { BlockBanner } from './path/BlockBanner';
 import { Icon } from './path/icons';
@@ -39,7 +39,7 @@ export function LearnPage() {
 
   // Show the jump button only while the active island is off screen.
   const [activeVisible, setActiveVisible] = useState(true);
-  const activeKey = active && !view.locked ? `${view.level.id}:${active.id}` : '';
+  const activeKey = active ? `${view.level.id}:${active.id}` : '';
   useEffect(() => {
     const el = activeKey ? document.getElementById('path-active') : null;
     if (!el || typeof IntersectionObserver === 'undefined') return;
@@ -72,10 +72,7 @@ export function LearnPage() {
   const nextLesson = nextRec ? CATALOG.find((l) => l.id === nextRec.lessonId) : undefined;
   const showPaywall = !member && completed >= FREE_LESSON_LIMIT && nextLesson && !isLessonUnlocked(course, nextLesson.id);
 
-  const selectLevel = (id: string, locked: boolean) => {
-    if (locked) return setNotice(RULES_LOCK);
-    setParams({ level: id }, { replace: true });
-  };
+  const selectLevel = (id: string) => setParams({ level: id }, { replace: true });
 
   return (
     <div className={styles.page}>
@@ -105,10 +102,8 @@ export function LearnPage() {
             type="button"
             className={styles.levelBtn}
             aria-pressed={l.level.id === view.level.id}
-            data-locked={l.locked || undefined}
-            onClick={() => selectLevel(l.level.id, l.locked)}
+            onClick={() => selectLevel(l.level.id)}
           >
-            {l.locked && <Icon name="lock" size={16} />}
             {l.level.label}
           </button>
         ))}
@@ -133,21 +128,10 @@ export function LearnPage() {
 
       {showPaywall && nextLesson && <MembershipCard lesson={nextLesson} completedCount={completed} />}
 
-      {active && !view.locked && <NextUp node={active} reason={recs.find((r) => r.lessonId === active.id)?.reason} rulesDone={rules.done.size} />}
-
-      {view.locked && (
-        <Card variant="inverse" className={styles.lockedLevel}>
-          <p>
-            <strong>{view.level.label} is locked.</strong> {RULES_LOCK}
-          </p>
-          <ButtonLink to={`${routes.learn()}?level=beginner`} replace>
-            Go to Rules basics
-          </ButtonLink>
-        </Card>
-      )}
+      {active && <NextUp node={active} reason={recs.find((r) => r.lessonId === active.id)?.reason} rulesDone={rules.done.size} />}
 
       {/* ---- the path ---- */}
-      <div className={styles.path} data-locked={view.locked || undefined}>
+      <div className={styles.path}>
         {view.blocks.map((b, bi) => {
           const mascotAt = Math.min(2, b.nodes.length - 1);
           return (
@@ -161,12 +145,11 @@ export function LearnPage() {
               <ol className={styles.nodes}>
                 {b.nodes.map((n, i) => {
                   const x = ZIGZAG[i % ZIGZAG.length]!;
-                  const node = view.locked ? { ...n, state: 'locked-rules' as const, active: false, lockReason: RULES_LOCK } : n;
                   return (
                     <Fragment key={n.key}>
-                      <PathNode node={node} x={x} onLocked={setNotice} />
+                      <PathNode node={n} x={x} onLocked={setNotice} />
                       {i === mascotAt && (
-                        <li className={styles.mascotRow} aria-hidden="true" data-side={x > 0 ? 'left' : 'right'} data-dim={b.comingSoon || view.locked || undefined}>
+                        <li className={styles.mascotRow} aria-hidden="true" data-side={x > 0 ? 'left' : 'right'} data-dim={b.comingSoon || undefined}>
                           <BrandAvatar size={96} state={n.active ? 'speaking' : 'idle'} decorative />
                         </li>
                       )}
@@ -217,7 +200,7 @@ function NextUp({ node, reason, rulesDone }: { node: ViewNode; reason?: string; 
       ? `Score at least 7 of 10 to finish Rules basics.`
       : drill
         ? `Rules basics · lesson ${rulesDone + 1} of 10`
-        : (reason ?? 'Recommended for you');
+        : (reason ?? (node.kind === 'drill' ? 'Next in your path' : 'Recommended for you'));
   return (
     <Card variant="inverse" className={styles.nextUp}>
       <div className={styles.nextText}>

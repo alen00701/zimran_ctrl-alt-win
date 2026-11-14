@@ -4,7 +4,7 @@
  */
 import type { CourseState, Expertise, GuestState, ScoreRecord } from '@/shared/contracts/types';
 import { isLessonUnlocked } from '@/shared/state';
-import { LEVELS, type PathBlock, type PathLevel } from '../catalog/path';
+import { ALL_DRILLS, LEVELS, type PathBlock, type PathLevel } from '../catalog/path';
 import { QUIZ_PASS_MARK, RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ, RULES_QUIZ_ID } from '../catalog/rulesBasics';
 import type { Difficulty, Lesson } from '../types';
 import type { Recommendation } from './recommend';
@@ -46,6 +46,12 @@ export function readRules(course: CourseState): RulesProgress {
       ? { index: r.index, answers: r.answers as Record<string, string>, finished: r.finished === true }
       : null;
   return { done, quiz, run, passed: quiz?.passed === true };
+}
+
+/** Drills finished in any block (Rules basics included): they are all stored as `drill:<id>` in the block's own record. */
+export function readDone(course: CourseState, blockId: string): Set<string> {
+  const a = course.lessons[blockId]?.answers ?? {};
+  return new Set(ALL_DRILLS.filter((d) => a[`drill:${d.id}`] === true).map((d) => d.id));
 }
 
 export const quizScore = (answers: Record<string, string>) =>
@@ -103,7 +109,6 @@ export interface ViewLevel {
   blocks: ViewBlock[];
   done: number;
   total: number;
-  locked: boolean;
 }
 
 export interface PathInput {
@@ -113,7 +118,7 @@ export interface PathInput {
   recs: Recommendation[];
 }
 
-export const RULES_LOCK = 'Finish Rules basics and pass its quiz first. It unlocks the rest of the course.';
+export const RULES_LOCK = 'Finish Rules basics and pass its quiz first. It unlocks the rest of the Beginner level.';
 const ORDER_LOCK = 'Finish the previous lesson in this block first.';
 const QUIZ_LOCK = 'Finish all ten Rules basics lessons to unlock the block quiz.';
 const MEMBERS_LOCK = 'You have used your two free lessons. Membership unlocks this one.';
@@ -132,22 +137,23 @@ export function buildPath(input: PathInput): ViewLevel[] {
 
       for (const ref of block.nodes) {
         if (ref.kind === 'drill') {
-          const drill = RULES_DRILLS.find((d) => d.id === ref.id);
-          const done = rules.done.has(ref.id);
+          const drill = ALL_DRILLS.find((d) => d.id === ref.id);
+          const isRulesBlock = block.id === RULES_BLOCK_ID;
+          const done = readDone(course, block.id).has(ref.id);
           let state: NodeState = done ? 'done' : 'open';
+          let lockReason: string | undefined;
           if (!done) {
-            if (firstUndoneSeen) state = 'locked-order';
-            firstUndoneSeen = true;
+            // Rules basics is taken in order; every other block can be opened in any order.
+            if (isRulesBlock && firstUndoneSeen) {
+              state = 'locked-order';
+              lockReason = ORDER_LOCK;
+            } else if (!isRulesBlock && gate && level.id === 'beginner') {
+              state = 'locked-rules';
+              lockReason = RULES_LOCK;
+            }
+            if (isRulesBlock) firstUndoneSeen = true;
           }
-          nodes.push({
-            key: ref.id,
-            kind: 'drill',
-            id: ref.id,
-            title: drill?.title ?? ref.id,
-            state,
-            active: false,
-            lockReason: state === 'locked-order' ? ORDER_LOCK : undefined,
-          });
+          nodes.push({ key: ref.id, kind: 'drill', id: ref.id, title: drill?.title ?? ref.id, state, active: false, lockReason });
         } else {
           const id = ref.id;
           if (!lessons.some((l) => l.id === id)) continue; // only playable lessons appear
@@ -155,7 +161,7 @@ export function buildPath(input: PathInput): ViewLevel[] {
           let state: NodeState;
           let lockReason: string | undefined;
           if (course.completedLessonIds.includes(id)) state = 'done';
-          else if (gate) {
+          else if (gate && level.id === 'beginner') {
             state = 'locked-rules';
             lockReason = RULES_LOCK;
           } else if (!isLessonUnlocked(course, id)) {
@@ -199,26 +205,25 @@ export function buildPath(input: PathInput): ViewLevel[] {
 
     // Pick the single "Start here" node for this level.
     const all = blocks.flatMap((b) => b.nodes);
-    const isRules = (n: ViewNode) => n.kind === 'drill' || n.kind === 'quiz';
+    const rulesIds = new Set([...RULES_DRILLS.map((d) => d.id), RULES_QUIZ_ID]);
+    const isRules = (n: ViewNode) => rulesIds.has(n.id);
     const pickRules = () => all.find((n) => isRules(n) && n.state === 'open');
-    const pickLesson = () =>
+    const rank = (id: string) => recRank.get(id) ?? 99;
+    const pickNext = () =>
       all
-        .filter((n) => n.kind === 'lesson' && (n.state === 'open' || n.state === 'in-progress'))
-        .sort((a, b) => {
-          const ip = Number(b.state === 'in-progress') - Number(a.state === 'in-progress');
-          return ip || (recRank.get(a.id) ?? 99) - (recRank.get(b.id) ?? 99);
-        })[0];
-    const active = gate ? pickRules() : (pickLesson() ?? pickRules());
+        .map((n, order) => ({ n, order }))
+        .filter(({ n }) => (n.kind === 'lesson' || (n.kind === 'drill' && !isRules(n))) && (n.state === 'open' || n.state === 'in-progress'))
+        .sort((a, b) => Number(b.n.state === 'in-progress') - Number(a.n.state === 'in-progress') || rank(a.n.id) - rank(b.n.id) || a.order - b.order)[0]?.n;
+    // Only the Beginner level starts with the Rules basics gate; other levels open straight away.
+    const active = gate && level.id === 'beginner' ? pickRules() : (pickNext() ?? pickRules());
     if (active) active.active = true;
 
-    const locked = li > 0 && gate;
     return {
       level,
       number: li + 1,
       blocks,
       done: blocks.reduce((s, b) => s + b.done, 0),
       total: blocks.reduce((s, b) => s + b.total, 0),
-      locked,
     };
   });
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CourseState, GuestState } from '@/shared/contracts/types';
 import { createDefaultState } from '@/shared/state/defaults';
 import { CATALOG } from '../catalog';
-import { LEVELS } from '../catalog/path';
+import { ALL_DRILLS, LEVELS } from '../catalog/path';
 import { QUIZ_PASS_MARK, RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ } from '../catalog/rulesBasics';
 import { buildPath, quizScore, readRules, streakDays } from './path';
 import { recommend } from './recommend';
@@ -35,6 +35,29 @@ describe('path structure', () => {
     for (const p of placed) expect(CATALOG.find((l) => l.id === p.id)?.difficulty).toBe(p.level);
   });
 
+  it('each level has three full blocks of 10 lessons; the other two stay coming soon', () => {
+    for (const l of LEVELS) {
+      l.blocks.slice(0, 3).forEach((b) => expect(b.nodes, `${l.id}/${b.id}`).toHaveLength(10));
+      l.blocks.slice(3).forEach((b) => expect(b.nodes, `${l.id}/${b.id}`).toHaveLength(0));
+    }
+    const lv = path(course(), 'expert');
+    for (const l of lv) {
+      expect(l.blocks.slice(0, 3).every((b) => !b.comingSoon && !b.nodes.some((n) => n.kind === 'soon'))).toBe(true);
+      expect(l.blocks.slice(3).every((b) => b.comingSoon)).toBe(true);
+    }
+  });
+
+  it('has unique, valid drills that never collide with lesson IDs', () => {
+    const ids = ALL_DRILLS.map((d) => d.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.some((id) => CATALOG.some((l) => l.id === id))).toBe(false);
+    expect(ALL_DRILLS).toHaveLength(10 + 74);
+    for (const d of ALL_DRILLS) {
+      expect(d.check.options.some((o) => o.id === d.check.correctId), d.id).toBe(true);
+      expect(d.paragraphs.every((p) => p.length > 20) && d.keyRule.length > 5, d.id).toBe(true);
+    }
+  });
+
   it('Rules basics is first: 10 drills and a valid 10-question quiz', () => {
     const first = LEVELS[0]!.blocks[0]!;
     expect(first.id).toBe(RULES_BLOCK_ID);
@@ -57,11 +80,18 @@ describe('path state', () => {
     expect(n.slice(1, 10).every((x) => x.state === 'locked-order')).toBe(true);
     expect(n.find((x) => x.kind === 'quiz')?.state).toBe('locked-order');
     expect(n.filter((x) => x.kind === 'lesson').every((x) => x.state === 'locked-rules')).toBe(true);
-    expect(lv[1]!.locked && lv[2]!.locked).toBe(true);
   });
 
-  it('visitors without a level are treated as newcomers', () => {
-    expect(path(course(), null)[1]!.locked).toBe(true);
+  it('never locks Intermediate or Advanced, even for newcomers', () => {
+    for (const expertise of ['new', null] as const) {
+      const lv = path(course(), expertise);
+      for (const i of [1, 2]) {
+        const n = nodes(lv, i).filter((x) => x.kind !== 'soon');
+        expect(n.length).toBeGreaterThan(0);
+        expect(n.every((x) => x.state === 'open' || x.state === 'in-progress'), `${lv[i]!.level.id} ${expertise}`).toBe(true);
+        expect(n.filter((x) => x.active)).toHaveLength(1);
+      }
+    }
   });
 
   it('drills unlock one by one and the quiz opens after all ten', () => {
@@ -73,15 +103,14 @@ describe('path state', () => {
 
   it('passing the quiz unlocks lessons and the other levels', () => {
     const lv = path(course({ lessons: rulesRecord(passed) }), 'new');
-    expect(lv[1]!.locked || lv[2]!.locked).toBe(false);
     expect(nodes(lv).filter((n) => n.kind === 'lesson').every((n) => n.state === 'open')).toBe(true);
+    expect(nodes(lv).filter((n) => n.kind === 'drill' && n.state !== 'done').every((n) => n.state === 'open')).toBe(true);
     expect(nodes(lv).find((n) => n.active)?.kind).toBe('lesson');
     expect(lv[0]!.blocks[0]!.done).toBe(11);
   });
 
   it('familiar and expert fans are not gated; Rules basics is an optional refresher', () => {
     const lv = path(course(), 'expert');
-    expect(lv.some((l) => l.locked)).toBe(false);
     expect(lv[0]!.blocks[0]!.optional).toBe(true);
     expect(nodes(lv, 2).find((n) => n.active)?.id).toBe('tactics-quick-corner');
   });
@@ -100,11 +129,9 @@ describe('path state', () => {
     expect(n.filter((x) => x.state === 'locked-members')).toHaveLength(0);
   });
 
-  it('marks exactly one active node per level, and none on a locked level', () => {
+  it('marks exactly one active node per level', () => {
     const lv = path(course({ lessons: rulesRecord(passed) }), 'new');
     for (const l of lv) expect(l.blocks.flatMap((b) => b.nodes).filter((n) => n.active)).toHaveLength(1);
-    const gated = path(course(), 'new');
-    expect(nodes(gated, 1).filter((n) => n.active)).toHaveLength(0);
   });
 
   it('scores a quiz run', () => {

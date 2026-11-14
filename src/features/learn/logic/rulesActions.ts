@@ -26,3 +26,20 @@ export const rulesActions = {
     courseActions.saveAnswer(RULES_BLOCK_ID, 'quiz', rec as unknown as Record<string, unknown>);
   },
 };
+
+/** Same writes for any drill block (everything except the quiz). Progress lives in the block's own record. */
+export function blockActions(blockId: string, title: string) {
+  const open = () => courseActions.openLesson(blockId, title);
+  return {
+    open,
+    saveCheck(drillId: string, selected: string, correct: boolean) {
+      open();
+      courseActions.saveAnswer(blockId, `check:${drillId}`, { selected, correct });
+    },
+    completeDrill(drillId: string, doneCount: number) {
+      open();
+      courseActions.saveAnswer(blockId, `drill:${drillId}`, true);
+      courseActions.setStep(blockId, doneCount);
+    },
+  };
+}

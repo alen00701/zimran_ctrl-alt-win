@@ -6,7 +6,13 @@
 import type { ModuleCategory } from '@/shared/contracts/catalog';
 import type { ArtId } from '../art/Illustration';
 import type { Difficulty } from '../types';
-import { RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ_ID } from './rulesBasics';
+import { RULES_BLOCK_ID, RULES_DRILLS, RULES_QUIZ_ID, type Drill } from './rulesBasics';
+import { managerDrills, pressingDrills, setPieceDrills } from './blocks/advanced';
+import { scoresDrills, spaceDrills } from './blocks/beginner';
+import { bioDrills, legendsDrills, transferDrills } from './blocks/intermediate';
+
+const drillNodes = (list: Drill[]): PathNodeRef[] => list.map((d) => ({ kind: 'drill', id: d.id }));
+const lesson = (id: string): PathNodeRef => ({ kind: 'lesson', id });
 
 export type PathNodeRef = { kind: 'drill'; id: string } | { kind: 'lesson'; id: string };
 
@@ -52,7 +58,7 @@ export const LEVELS: PathLevel[] = [
         guide: [
           'Ten short lessons on the rules every fan needs: goals, restarts, offside, fouls and cards.',
           'Finish all ten, then pass the 10-question quiz with at least 7 correct answers.',
-          'Newcomers unlock the rest of the course by passing this block.',
+          'Newcomers unlock the rest of the Beginner level by passing this block. Intermediate and Advanced are always open.',
         ],
         nodes: RULES_DRILLS.map((d) => ({ kind: 'drill' as const, id: d.id })),
         quizId: RULES_QUIZ_ID,
@@ -63,10 +69,12 @@ export const LEVELS: PathLevel[] = [
         title: 'Scores and tournaments',
         module: 'tournaments',
         tone: 'inverse',
-        guide: ['How results are decided across two legs and how a World Cup is structured.'],
+        guide: ['Points, tables, knockouts and shootouts, plus how aggregate scores and a World Cup final work.'],
         nodes: [
-          { kind: 'lesson', id: 'rules-aggregate-score' },
-          { kind: 'lesson', id: 'tournaments-2015-world-cup-final' },
+          ...drillNodes(scoresDrills.slice(0, 3)),
+          lesson('rules-aggregate-score'),
+          ...drillNodes(scoresDrills.slice(3)),
+          lesson('tournaments-2015-world-cup-final'),
         ],
       },
       {
@@ -76,7 +84,7 @@ export const LEVELS: PathLevel[] = [
         module: 'tactics',
         tone: 'deep',
         guide: ['Why positions matter more than chasing the ball. Move a defender and see what changes.'],
-        nodes: [{ kind: 'lesson', id: 'tactics-passing-lanes' }],
+        nodes: [...drillNodes(spaceDrills.slice(0, 3)), lesson('tactics-passing-lanes'), ...drillNodes(spaceDrills.slice(3))],
       },
       { id: 'beginner-skills',
         art: 'skills', title: 'Techniques and skills', module: 'techniques', tone: 'outline', guide: ['First touch, passing and shooting technique.'], nodes: [] },
@@ -95,7 +103,7 @@ export const LEVELS: PathLevel[] = [
         module: 'history',
         tone: 'brand',
         guide: ['Matches the sport still argues about, and why.'],
-        nodes: [{ kind: 'lesson', id: 'history-maradona-1986' }],
+        nodes: [...drillNodes(legendsDrills.slice(0, 4)), lesson('history-maradona-1986'), ...drillNodes(legendsDrills.slice(4))],
       },
       {
         id: 'intermediate-transfers',
@@ -104,10 +112,17 @@ export const LEVELS: PathLevel[] = [
         module: 'transfers',
         tone: 'inverse',
         guide: ['How moves between clubs and leagues shape careers.'],
-        nodes: [{ kind: 'lesson', id: 'transfers-messi-to-miami' }],
+        nodes: [...drillNodes(transferDrills.slice(0, 1)), lesson('transfers-messi-to-miami'), ...drillNodes(transferDrills.slice(1))],
       },
-      { id: 'intermediate-bios',
-        art: 'jersey', title: 'Player biographies', module: 'biographies', tone: 'outline', guide: ['The people behind the legends.'], nodes: [] },
+      {
+        id: 'intermediate-bios',
+        art: 'jersey',
+        title: 'Player biographies',
+        module: 'biographies',
+        tone: 'deep',
+        guide: ['The people behind the legends.'],
+        nodes: drillNodes(bioDrills),
+      },
       { id: 'intermediate-formats',
         art: 'bracket', title: 'Tournament formats', module: 'tournaments', tone: 'outline', guide: ['Groups, knockouts and tiebreakers.'], nodes: [] },
       { id: 'intermediate-skills',
@@ -125,12 +140,26 @@ export const LEVELS: PathLevel[] = [
         module: 'tactics',
         tone: 'brand',
         guide: ['Restarts as weapons: timing, routines and catching a defense unset.'],
-        nodes: [{ kind: 'lesson', id: 'tactics-quick-corner' }],
+        nodes: [...drillNodes(setPieceDrills.slice(0, 3)), lesson('tactics-quick-corner'), ...drillNodes(setPieceDrills.slice(3))],
       },
-      { id: 'advanced-pressing',
-        art: 'lanes', title: 'Pressing and shape', module: 'tactics', tone: 'outline', guide: ['Defending as a unit.'], nodes: [] },
-      { id: 'advanced-managers',
-        art: 'board', title: 'Managers and game plans', module: 'strategy', tone: 'outline', guide: ['In-game decisions and substitutions.'], nodes: [] },
+      {
+        id: 'advanced-pressing',
+        art: 'lanes',
+        title: 'Pressing and shape',
+        module: 'tactics',
+        tone: 'inverse',
+        guide: ['Defending as a unit, and the shapes that attack it.'],
+        nodes: drillNodes(pressingDrills),
+      },
+      {
+        id: 'advanced-managers',
+        art: 'board',
+        title: 'Managers and game plans',
+        module: 'strategy',
+        tone: 'deep',
+        guide: ['In-game decisions, substitutions and preparing for a match.'],
+        nodes: drillNodes(managerDrills),
+      },
       { id: 'advanced-club-history',
         art: 'trophy', title: 'Club history', module: 'history', tone: 'outline', guide: ['How great clubs were built.'], nodes: [] },
       { id: 'advanced-market',
@@ -140,3 +169,21 @@ export const LEVELS: PathLevel[] = [
 ];
 
 export const levelOf = (id: string) => LEVELS.find((l) => l.id === id);
+
+/** Every drill in the course, with the block it belongs to. Rules basics keeps its own ordering and quiz. */
+export const ALL_DRILLS: Drill[] = [...RULES_DRILLS, ...scoresDrills, ...spaceDrills, ...legendsDrills, ...transferDrills, ...bioDrills, ...setPieceDrills, ...pressingDrills, ...managerDrills];
+
+export function findDrill(id: string) {
+  for (const level of LEVELS) {
+    for (const block of level.blocks) {
+      if (block.nodes.some((n) => n.kind === 'drill' && n.id === id)) {
+        const drills = block.nodes.flatMap((n) => (n.kind === 'drill' ? [ALL_DRILLS.find((d) => d.id === n.id)!] : []));
+        return { drill: drills.find((d) => d.id === id)!, block, level, drills };
+      }
+    }
+  }
+  return undefined;
+}
+
+/** Block IDs that hold drills (their progress record doubles as the resume target). */
+export const drillBlock = (id: string) => LEVELS.flatMap((l) => l.blocks).find((b) => b.id === id && b.nodes.some((n) => n.kind === 'drill'));

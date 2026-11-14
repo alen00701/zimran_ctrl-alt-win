@@ -46,3 +46,8 @@ Categories with no lesson show "Coming soon" in the Modules grid.
 
 ## Illustrations
 `art/Illustration.tsx`: 20 original vector scenes (pitch diagrams, scoreboards, cards, trophy and so on), drawn with semantic tokens only. No photos, club crests or logos. Every Rules lesson (`Drill.art`), every block-quiz question (`ChoiceQuestion.art`), every course lesson story (`Lesson.art`) and its quiz (`quiz.art`, or the tactical `diagram`), and every block banner (`PathBlock.art`) has one. Each scene has alt text in `ART_ALT`. `art/art.test.ts` fails if any item is missing a picture. To add a scene: add its ID to `ART_IDS`, its alt text and a drawing in `SCENES`.
+
+## Blocks of 10 (current content)
+Each level has three playable blocks of 10 lessons (blocks 4 and 5 are still "Coming soon"). Beginner: Rules basics, Scores and tournaments, Space on the field. Intermediate: Legends and controversy, Transfers, Player biographies. Advanced: Set pieces, Pressing and shape, Managers and game plans. A block mixes the six full course lessons with short drills (`catalog/blocks/*.ts`, authored as compact rows via `make.ts`; each drill has a key rule and a quick check that scores 10 points on the first attempt). Drill progress lives in the block's own record (`course.lessons[blockId]`), never in `completedLessonIds`, so it does not use the two free lessons.
+- Only Rules basics is taken in order. Other blocks open in any order.
+- The Rules basics gate now only applies inside the Beginner level (other Beginner blocks stay locked for newcomers until the quiz is passed). Intermediate and Advanced are never locked.

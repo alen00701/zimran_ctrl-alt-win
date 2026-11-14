@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CATALOG } from '../catalog';
-import { LEVELS } from '../catalog/path';
-import { RULES_DRILLS, RULES_QUIZ } from '../catalog/rulesBasics';
+import { ALL_DRILLS, LEVELS } from '../catalog/path';
+import { RULES_QUIZ } from '../catalog/rulesBasics';
 import { ART_ALT, ART_IDS } from './Illustration';
 
 const known = new Set<string>(ART_IDS);
@@ -11,7 +11,7 @@ describe('illustrations', () => {
     for (const id of ART_IDS) expect(ART_ALT[id].length, id).toBeGreaterThan(20);
   });
   it('every Rules lesson and every quiz question has a picture', () => {
-    for (const d of RULES_DRILLS) expect(known.has(d.art), d.id).toBe(true);
+    for (const d of ALL_DRILLS) expect(known.has(d.art), d.id).toBe(true);
     for (const q of RULES_QUIZ) expect(q.art && known.has(q.art), q.id).toBe(true);
   });
   it('every course lesson has a story picture and a quiz picture or diagram', () => {
