@@ -440,3 +440,5 @@
   .eventRow { grid-template-columns: 220px 1fr; }
   .rowMedia .venuePhoto { aspect-ratio: auto; }
 }
+
+.venuePhoto[data-fit='contain'] { object-fit: contain; }

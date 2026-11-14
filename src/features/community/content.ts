@@ -6,7 +6,7 @@
  * claim of a club, league, venue or media partnership.
  */
 import { DEMO_EVENT, DEMO_GROUP, DEMO_PLAY_DAY, SEED_POSTS } from '@/shared/fixtures/ids';
-import matchupUrl from './assets/watch-party-matchup.jpg';
+import matchupUrl from './assets/watch-party-matchup.png';
 import fieldUrl from './assets/play-day-field.jpg';
 
 export interface CommunityGroup {
@@ -54,7 +54,8 @@ interface EventBase {
     fictional: true;
   };
   /** Picture for the event card. The matchup art shows the two real clubs' crests; see MEDIA note in the README. */
-  photo: { src: string; width: number; height: number; alt: string };
+  /** `fit: 'contain'` shows a square picture whole; `backdrop` fills the side bars. */
+  photo: { src: string; width: number; height: number; alt: string; fit?: 'contain'; backdrop?: string };
   priceLabel: string;
   organizer: { name: string; groupId: string };
   agenda: Array<{ when: string; what: string }>;
@@ -117,9 +118,11 @@ export const WATCH_PARTY: WatchPartyEvent = {
   },
   photo: {
     src: matchupUrl,
-    width: 800,
-    height: 448,
-    alt: 'Illustration: FC Cincinnati versus Orlando City, with a night skyline behind each club crest',
+    width: 400,
+    height: 400,
+    fit: 'contain',
+    backdrop: 'linear-gradient(90deg, #5c2d91 50%, #ff5a00 50%)',
+    alt: 'Matchup graphic: the Orlando City crest on purple and the FC Cincinnati crest on orange, split by a diagonal',
   },
   priceLabel: 'Free',
   organizer: { name: DEMO_GROUP.name, groupId: DEMO_EVENT.groupId },

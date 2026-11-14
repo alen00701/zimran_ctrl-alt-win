@@ -15,6 +15,8 @@ export function VenuePhoto({ photo, className }: { photo: CommunityEvent['photo'
       alt={photo.alt}
       loading="lazy"
       decoding="async"
+      data-fit={photo.fit}
+      style={photo.backdrop ? { background: photo.backdrop } : undefined}
     />
   );
 }
