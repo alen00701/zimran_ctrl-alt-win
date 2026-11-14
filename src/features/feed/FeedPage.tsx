@@ -43,7 +43,8 @@ function QuizReel({ quiz, index, total }: { quiz: FeedQuiz; index: number; total
 }
 function Reel({ post, active, open, index, total }: { post: Story; active: boolean; open: (type: 'details' | 'share' | 'quiz', post: Story) => void; index: number; total: number }) {
   const media = storyMedia[post.id]!;
-  const [playing, setPlaying] = useState(true);
+  /** Third-party players must start only after an explicit tap: browsers otherwise block autoplay. */
+  const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
   const state = useGuestState();
@@ -54,6 +55,9 @@ function Reel({ post, active, open, index, total }: { post: Story; active: boole
     return () => clearTimeout(timer);
   }, [active, post]);
   useEffect(() => {
+    if (!active) setPlaying(false);
+  }, [active]);
+  useEffect(() => {
     function onMessage(event: MessageEvent) {
       if (event.source !== frame.current?.contentWindow || !['https://www.youtube-nocookie.com', 'https://www.youtube.com'].includes(event.origin)) return;
       try { const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; if (data.event === 'onError') setFailed(true); } catch { /* Other provider messages are irrelevant. */ }
@@ -61,16 +65,18 @@ function Reel({ post, active, open, index, total }: { post: Story; active: boole
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
   }, []);
-  const showVideo = active && media.videoId && playing && !failed;
+  // The tap itself is authoritative: it must still work while the browser is
+  // settling a scroll-snap position and its scroll event has not fired yet.
+  const showVideo = media.videoId && playing && !failed;
   return <article className={styles.reel} aria-label={`${index + 1} of ${total}: ${post.title}`}>
     <img className={styles.photo} src={media.image} alt={media.alt} style={{ objectPosition: media.position }} loading={index < 2 ? 'eager' : 'lazy'} />
     <div className={styles.shade} />
     <div className={styles.mediaLabel}>{media.videoId ? '▶ Match clip' : '▧ Photo story'} · {post.category}</div>
-    {showVideo && <div className={styles.player}><iframe ref={frame} title={`${post.title} — ${media.credit}`} src={`https://www.youtube-nocookie.com/embed/${media.videoId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" onLoad={() => frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: post.id }), 'https://www.youtube-nocookie.com')} /><a href={`https://www.youtube.com/watch?v=${media.videoId}`} target="_blank" rel="noreferrer">Not playing? Watch the original ↗</a></div>}
-    {media.videoId && !showVideo && <Button variant="ghost" className={styles.play} onClick={() => { setFailed(false); setPlaying(true); }} aria-label={`Play ${post.title}`}><Icon name="play" /></Button>}
+    {showVideo && <div className={styles.player}><iframe ref={frame} title={`${post.title} — ${media.credit}`} src={`https://www.youtube.com/embed/${media.videoId}?autoplay=1&mute=0&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" onLoad={() => frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: post.id }), 'https://www.youtube.com')} /><a href={`https://www.youtube.com/watch?v=${media.videoId}`} target="_blank" rel="noreferrer">Open on YouTube ↗</a></div>}
+    {media.videoId && !showVideo && <div className={styles.videoPrompt}><Button variant="inverse" onClick={() => { setFailed(false); setPlaying(true); }} aria-label={`Play original video: ${post.title}`}><Icon name="play" /> Play original video</Button><a href={`https://www.youtube.com/watch?v=${media.videoId}`} target="_blank" rel="noreferrer">Open on YouTube ↗</a></div>}
     <div className={styles.actions}>
       <div className={styles.avatar}><BrandAvatar size="sm" decorative /></div>
-      {media.videoId && <Button variant="ghost" className={styles.action} onClick={() => setPlaying(!playing)} aria-label={playing ? 'Pause video' : 'Play video'}><Icon name={playing ? 'pause' : 'play'} /><span>{playing ? 'Pause' : 'Play'}</span></Button>}
+      {media.videoId && <Button variant="ghost" className={styles.action} onClick={() => setPlaying(!playing)} aria-label={playing ? 'Stop video' : 'Play video'}><Icon name={playing ? 'pause' : 'play'} /><span>{playing ? 'Stop' : 'Play'}</span></Button>}
       <Button variant="ghost" className={styles.action} onClick={() => open('details', post)} aria-label={`Details for ${post.title}`}><Icon name="info" /><span>Story</span></Button>
       <Button variant="ghost" className={styles.action} onClick={() => open('share', post)} aria-label={`Share ${post.title}`}><Icon name="share" /><span>Share</span></Button>
       {hasQuiz && <Button variant="ghost" className={styles.action} onClick={() => open('quiz', post)} aria-label="Open story quiz"><Icon name="quiz" /><span>Quiz</span></Button>}

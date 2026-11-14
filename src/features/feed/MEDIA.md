@@ -1,6 +1,6 @@
 # Feed media
 
-The November 14, 2026 feed uses full-height, scroll-snapped media posts. Videos are original publisher YouTube embeds, played muted and mounted only for the active post. A direct original link remains available for region, browser or embedding restrictions. The app does not download or rehost video files.
+The November 14, 2026 feed uses full-height, scroll-snapped media posts. Videos are original publisher YouTube embeds that are mounted only after the reader taps **Play original video**. This avoids browser autoplay and privacy restrictions. A direct **Open on YouTube** link remains available for region, browser or embedding restrictions. The app does not download or rehost video files.
 
 ## Image credits and sources
 

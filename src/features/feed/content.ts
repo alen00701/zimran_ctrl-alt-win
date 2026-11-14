@@ -108,7 +108,16 @@ export const streamQuizzes: FeedQuiz[] = [
 export const editionQuizId = 'feed-quiz:2026-11-14';
 export const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 export const rankStories = (interests: InterestId[]) => [...stories].sort((a, b) => b.tags.filter(tag => interests.some(i => i === tag)).length - a.tags.filter(tag => interests.some(i => i === tag)).length);
-export const rankStreamStories = (interests: InterestId[]) => [...streamStories].sort((a, b) => b.tags.filter(tag => interests.some(i => i === tag)).length - a.tags.filter(tag => interests.some(i => i === tag)).length);
+export const rankStreamStories = (interests: InterestId[]) =>
+  [...streamStories].sort((a, b) => {
+    const interestDifference =
+      b.tags.filter(tag => interests.some(interest => interest === tag)).length -
+      a.tags.filter(tag => interests.some(interest => interest === tag)).length;
+
+    // Editors append new drops to this catalogue. Within the same personal
+    // relevance score, the newest addition should lead the reel.
+    return interestDifference || streamStories.indexOf(b) - streamStories.indexOf(a);
+  });
 export function quizStory(feed: FeedState) {
   const read = Object.values(feed.views).filter(view => stories.some(post => post.id === view.postId));
   if (read.length < 2) return undefined;
