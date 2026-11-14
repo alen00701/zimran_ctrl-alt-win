@@ -79,22 +79,23 @@
   .featuredTitle { font-size: var(--text-xl); letter-spacing: 0; }
 }
 
-/* ---- group + leaderboard ---- */
-.group { display: grid; gap: var(--space-5); }
-.groupHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }
-.groupText { display: grid; gap: var(--space-1); min-width: 0; }
-.groupText p { margin: 0; }
-.groupName { margin: 0; font-size: var(--text-xl); font-weight: var(--weight-heavy); }
-.board { display: grid; gap: var(--space-3); padding-top: var(--space-4); border-top: var(--border-width) solid var(--color-border); }
-.boardHead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
-.boardTitle { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-bold); }
-.boardNote {
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+/* ---- Silver League ---- */
+.board { display: grid; gap: var(--space-3); }
+.timer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-subtle);
+  color: var(--color-text-brand);
+  font-size: var(--text-sm);
   font-weight: var(--weight-bold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
+.boardHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.boardTitle { margin: 0; font-size: var(--text-xl); font-weight: var(--weight-heavy); }
 .boardList { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
 .boardRow {
   display: grid;

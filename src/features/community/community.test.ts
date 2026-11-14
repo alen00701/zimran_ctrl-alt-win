@@ -1,11 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEMO_EVENT, DEMO_GROUP, SEED_POSTS } from '@/shared/fixtures/ids';
 import { routes } from '@/shared/routes';
 import { communityActions, getGuestState, goingEventIds, isGoing, isMember, scoreboardActions } from '@/shared/state';
 import { __setBackendForTests } from '@/shared/state/storage';
 import { DEMO_LOCATION, EVENTS, GROUP, findEvent } from './content';
 import { distanceLabel, milesBetween, sortByDistance } from './geo';
-import { buildGroupBoard, coursePoints } from './leaderboard';
+import { buildLeagueBoard, coursePoints, leagueWeek, timeLeftLabel } from './leaderboard';
 import { CHAT_MAX_LENGTH, CHAT_STORAGE_KEY, DEMO_CHAT, __resetChatCacheForTests, getOwnMessages, postMessage } from './chat';
 import { buildDemoPlayers } from '@/shared/fixtures/demoPlayers';
 import { countdownLabel, eventDateLabel, eventShortDateLabel, eventTimeLabel, viewerTimeLabel } from './format';
@@ -120,39 +120,53 @@ describe('near you', () => {
   });
 });
 
-describe('group leaderboard', () => {
-  const now = new Date('2026-11-14T12:00:00-05:00');
-  beforeEach(() => __setBackendForTests(mem()));
+describe('Silver League', () => {
+  // Saturday noon local time; the league week started Monday 00:00.
+  const SAT = new Date(2026, 10, 14, 12, 0, 0);
+  beforeEach(() => {
+    __setBackendForTests(mem());
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(SAT);
+  });
+  afterEach(() => vi.useRealTimers());
 
-  it('counts only course points, first correct answers', () => {
+  it('runs Monday 00:00 to next Monday 00:00 in local time', () => {
+    const { start, end } = leagueWeek(SAT);
+    expect(start).toEqual(new Date(2026, 10, 9));
+    expect(end).toEqual(new Date(2026, 10, 16));
+    expect(leagueWeek(new Date(2026, 10, 16, 0, 0, 1)).start).toEqual(new Date(2026, 10, 16));
+    expect(leagueWeek(new Date(2026, 10, 15, 23, 59)).start).toEqual(new Date(2026, 10, 9));
+  });
+
+  it('formats the countdown', () => {
+    expect(timeLeftLabel(new Date(2026, 10, 16), SAT)).toBe('1d 12h 00m');
+    expect(timeLeftLabel(new Date(2026, 10, 14, 15, 5), SAT)).toBe('3h 05m');
+    expect(timeLeftLabel(new Date(2026, 10, 14, 12, 7, 30), SAT)).toBe('7m');
+    expect(timeLeftLabel(new Date(2026, 10, 14, 11), SAT)).toBe('0m');
+  });
+
+  it('counts only this week’s Learn points, first correct answers', () => {
     scoreboardActions.recordFirstAttempt('soccer', 'learn:rules-aggregate-score:quiz', true);
     scoreboardActions.recordFirstAttempt('soccer', 'learn:rules-aggregate-score:quiz', true); // retry: nothing
     scoreboardActions.recordFirstAttempt('soccer', 'learn:tactics-quick-corner:quiz', false);
-    scoreboardActions.recordFirstAttempt('soccer', 'feed:feed-quiz:1', true); // not a course point
+    scoreboardActions.recordFirstAttempt('soccer', 'feed:feed-quiz:1', true); // not a Learn point
     expect(coursePoints(getGuestState())).toBe(10);
+    expect(buildLeagueBoard(getGuestState(), SAT).yourPoints).toBe(10);
+    // Next week the league starts from zero; all-time points stay.
+    expect(buildLeagueBoard(getGuestState(), new Date(2026, 10, 17)).yourPoints).toBe(0);
   });
 
-  it('lists demo players only until the guest joins', () => {
-    const board = buildGroupBoard(getGuestState(), DEMO_GROUP.id, now);
-    expect(board.you).toBeNull();
-    expect(board.rows.every((r) => r.isDemo && !r.isYou)).toBe(true);
-    expect(board.rows.map((r) => r.points)).toEqual([40, 30, 30, 20]);
-    expect(board.rows.map((r) => r.rank)).toEqual([1, 2, 3, 4]);
-  });
-
-  it('ranks the guest by course points once they join', () => {
-    communityActions.joinGroup(DEMO_GROUP.id);
-    expect(buildGroupBoard(getGuestState(), DEMO_GROUP.id, now).you).toMatchObject({ rank: 5, points: 0, isDemo: false });
+  it('always lists the guest, ranked among demo players', () => {
+    const empty = buildLeagueBoard(getGuestState(), SAT);
+    expect(empty.rows).toHaveLength(5);
+    expect(empty.rows.filter((r) => r.isDemo)).toHaveLength(4);
+    expect(empty.you).toMatchObject({ rank: 5, points: 0, isDemo: false });
+    expect(empty.rows.map((r) => r.rank)).toEqual([1, 2, 3, 4, 5]);
 
     for (const step of ['a', 'b', 'c']) scoreboardActions.recordFirstAttempt('soccer', `learn:lesson:${step}`, true);
-    const board = buildGroupBoard(getGuestState(), DEMO_GROUP.id, now);
+    const board = buildLeagueBoard(getGuestState(), SAT);
     expect(board.yourPoints).toBe(30);
-    // Tied with two demo players on 30: the guest is listed first among the tie.
-    expect(board.you?.rank).toBe(2);
-    expect(board.rows).toHaveLength(5);
-
-    communityActions.leaveGroup(DEMO_GROUP.id);
-    expect(buildGroupBoard(getGuestState(), DEMO_GROUP.id, now).you).toBeNull();
+    expect(board.you.rank).toBe(1); // ties with the leader; the guest is listed first in a tie
   });
 });
 
@@ -160,13 +174,12 @@ describe('points stay separate from matchdays', () => {
   beforeEach(() => __setBackendForTests(mem()));
 
   it('RSVPs and chat never change Learn points or rank', () => {
-    communityActions.joinGroup(DEMO_GROUP.id);
     scoreboardActions.recordFirstAttempt('soccer', 'learn:lesson:a', true);
-    const before = buildGroupBoard(getGuestState(), DEMO_GROUP.id);
+    const before = buildLeagueBoard(getGuestState());
     communityActions.rsvp(DEMO_EVENT.id);
     postMessage(DEMO_EVENT.id, 'See you there!');
     communityActions.cancelRsvp(DEMO_EVENT.id);
-    const after = buildGroupBoard(getGuestState(), DEMO_GROUP.id);
+    const after = buildLeagueBoard(getGuestState());
     expect(after.yourPoints).toBe(10);
     expect(after.rows).toEqual(before.rows);
   });

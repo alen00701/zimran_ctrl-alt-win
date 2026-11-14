@@ -1,16 +1,16 @@
 import { Link } from 'react-router';
 import type { GuestState } from '@/shared/contracts/types';
-import { communityActions, isGoing, isMember, useGuestState } from '@/shared/state';
+import { communityActions, isGoing, useGuestState } from '@/shared/state';
 import { routes } from '@/shared/routes';
 import { Badge, Button, ButtonLink, Card, PageHeader } from '@/shared/ui';
-import { DEMO_LOCATION, EVENTS, GROUP, type CommunityEvent } from './content';
+import { DEMO_LOCATION, EVENTS, type CommunityEvent } from './content';
 import { countdownLabel, eventShortDateLabel, eventTimeLabel } from './format';
 import { distanceLabel, milesBetween, sortByDistance, useViewerLocation } from './geo';
-import { buildGroupBoard } from './leaderboard';
+import { LEAGUE_NAME, buildLeagueBoard, timeLeftLabel, useNow } from './leaderboard';
 import { VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
-/** /community: the nearest matchday event first, then the group with its leaderboard. */
+/** /community: the nearest matchday event first, then the weekly Silver League. */
 export function CommunityPage() {
   const state = useGuestState();
   const viewer = useViewerLocation();
@@ -47,7 +47,7 @@ export function CommunityPage() {
           ))}
         </section>
 
-        <GroupCard state={state} />
+        <LeagueCard state={state} />
       </div>
     </>
   );
@@ -101,45 +101,33 @@ const MEDALS = [
 ] as const;
 const medal = (rank: number) => MEDALS[rank - 1];
 
-function GroupCard({ state }: { state: GuestState }) {
-  const member = isMember(state, GROUP.id);
-  const board = buildGroupBoard(state, GROUP.id);
+function LeagueCard({ state }: { state: GuestState }) {
+  const now = useNow();
+  const board = buildLeagueBoard(state, now);
   return (
-    <section id={`group-${GROUP.id}`} aria-labelledby="group-title">
-      <Card className={styles.group}>
-        <div className={styles.groupHead}>
-          <div className={styles.groupText}>
-            <span className={styles.badges}>
-              <Badge variant="demo">Demo group</Badge>
-              {member && <Badge variant="success">Member</Badge>}
-            </span>
-            <h2 id="group-title" className={styles.groupName}>{GROUP.name}</h2>
-            <p className={styles.muted}>{GROUP.city} · {GROUP.tagline}</p>
-          </div>
-          {member ? (
-            <Button variant="secondary" onClick={() => communityActions.leaveGroup(GROUP.id)}>Leave group</Button>
-          ) : (
-            <Button onClick={() => communityActions.joinGroup(GROUP.id)}>Join group</Button>
-          )}
+    <section aria-labelledby="league-title">
+      <Card className={styles.board}>
+        <div className={styles.boardHead}>
+          <h2 id="league-title" className={styles.boardTitle}>
+            <span aria-hidden="true">🥈 </span>
+            {LEAGUE_NAME}
+          </h2>
+          <span className={styles.timer}>
+            <span aria-hidden="true">⏱</span>
+            <span className="visually-hidden">Week ends in </span>
+            <time dateTime={board.endsAt.toISOString()}>{timeLeftLabel(board.endsAt, now)}</time>
+          </span>
         </div>
-
-        <div className={styles.board}>
-          <div className={styles.boardHead}>
-            <h3 className={styles.boardTitle}>Learn leaderboard</h3>
-            <span className={styles.boardNote}>Group members</span>
-          </div>
-          <p className={styles.boardRule}>
-            Points come only from progress in Learn lessons. Matchdays and RSVPs don’t earn points.
-          </p>
-          <ol className={styles.boardList}>
-            {board.rows.map((r) => (
+        <p className={styles.boardRule}>
+          This week’s points from Learn lessons only. Matchdays and RSVPs don’t earn points.
+        </p>
+        <ol className={styles.boardList}>
+          {board.rows.map((r) => {
+            const m = medal(r.rank);
+            return (
               <li key={r.id} className={styles.boardRow} data-you={r.isYou || undefined}>
                 <span className={styles.rank}>
-                  {medal(r.rank) ? (
-                    <span role="img" aria-label={medal(r.rank)!.label}>{medal(r.rank)!.icon}</span>
-                  ) : (
-                    r.rank
-                  )}
+                  {m ? <span role="img" aria-label={m.label}>{m.icon}</span> : r.rank}
                 </span>
                 <span className={styles.player}>
                   {r.name}
@@ -147,15 +135,13 @@ function GroupCard({ state }: { state: GuestState }) {
                 </span>
                 <span className={styles.points}>{r.points} pts</span>
               </li>
-            ))}
-          </ol>
-          <p className={styles.boardFoot} role="status">
-            {board.you
-              ? `You’re #${board.you.rank} with ${board.yourPoints} pts from Learn lessons. `
-              : `You have ${board.yourPoints} pts from Learn lessons. Join the group to get on the board. `}
-            <Link to={routes.learn()}>Earn points in Learn →</Link>
-          </p>
-        </div>
+            );
+          })}
+        </ol>
+        <p className={styles.boardFoot}>
+          You’re #{board.you.rank} with {board.yourPoints} pts this week.{' '}
+          <Link to={routes.learn()}>Earn points in Learn →</Link>
+        </p>
       </Card>
     </section>
   );

@@ -5,7 +5,7 @@ import { Badge, Button, ButtonLink, Card, CoachPrompt, PageHeader, usePageTitle 
 import { GROUP, findEvent, type CommunityEvent } from './content';
 import { countdownLabel, eventDateLabel, eventTimeLabel, viewerTimeLabel } from './format';
 import { EventChat } from './EventChat';
-import { VENUE_PHOTO_CREDIT, VenuePhoto } from './VenuePhoto';
+import { VenuePhoto } from './VenuePhoto';
 import styles from './Community.module.css';
 
 /** /community/events/:eventId. Works as a deep link and after a reload: RSVP lives in shared guest state. */
@@ -52,7 +52,7 @@ function EventDetails({ event }: { event: CommunityEvent }) {
       <figure className={styles.venueFigure}>
         <VenuePhoto venueName={event.venue.name} />
         <figcaption>
-          Sample photo for a fictional venue · Photo: {VENUE_PHOTO_CREDIT}
+          Sample photo · {event.venue.name} is a fictional venue
         </figcaption>
       </figure>
 
